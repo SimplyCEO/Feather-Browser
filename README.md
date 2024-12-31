@@ -1,21 +1,19 @@
 <img src="./assets/icon_git.png" width="32" title="Feather Browser"> Feather Browser
 ====================================================================================
 
-A quick example of a browser, made in pure C using GTK3 and WebKit2GTK.
+A quick example of a browser, made in pure C using GTK3 and WebKit2GTK+.
 
 Usage
 -----
 
 To install it is really simple. Clone, enter, make, run, rage.
 ```shell
-git clone https://gitlab.com/SimplyCEO/LegaC-Launcher.git
-cd LegaC-Launcher
+git clone https://gitlab.com/SimplyCEO/Feather-Browser.git
+cd Feather-Browser
 make BUILD_TYPE=Release
 bin/feather_browser
 ```
 Or just open `feather_browser` located inside `bin` folder.
-
-To avoid overwritting your `CFLAGS` use `make BUILD_TYPE=Custom`.
 
 Installation
 ------------
