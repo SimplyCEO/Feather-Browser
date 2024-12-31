@@ -1,5 +1,5 @@
-Feather Browser
-===============
+<img src="./assets/icon_git.png" width="32" title="Feather Browser"> Feather Browser
+====================================================================================
 
 A quick example of a browser, made in pure C using GTK3 and WebKit2GTK.
 
