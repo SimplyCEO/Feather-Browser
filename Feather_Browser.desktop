@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=Feather Browser
+Exec=feather_browser
+Icon=feather_browser_icon
+Terminal=false
+Type=Application
+Categories=Internet;
