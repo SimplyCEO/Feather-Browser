@@ -3,41 +3,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
+#include "browser.h"
+#include "cookie.h"
 
-struct BrowserUI
-{
-  struct MainWindowUI
-  {
-    GtkWidget* def;
-    GdkPixbuf* icon;
-    struct MainWindowWidgetUI
-    {
-      GtkWidget* vbox;
-      GtkWidget* hbox;
-      GtkWidget* back;
-      GtkWidget* forward;
-      GtkWidget* reload;
-      GtkWidget* url;
-      GtkWidget* search;
-      WebKitWebView* monitor;
-    } widget;
-  } window;
-} browser = {{NULL,NULL,{NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}};
-
-struct Directory
-{
-  char def[1024];
-  struct AssetsDirectory
-  {
-    char def[1024];
-    char icon[1024];
-  } assets;
-} root = {0};
+Browser browser = {0};
+BrowserDirectory root = {0};
 
 unsigned char isFirstLaunch = 1;
-char szUrl[1024] = {0};
 
 /* =========================================================================== */
 
@@ -61,6 +33,9 @@ setup_directory(void)
     mkdir(root.assets.def, 0700);
   }
 
+  strcpy(root.assets.cookies, root.assets.def);
+  strcat(root.assets.cookies, "/cookies.dat");
+
   strcpy(root.assets.icon, root.assets.def);
   strcat(root.assets.icon, "/icon.png");
 }
@@ -78,28 +53,28 @@ on_window_terminate(void)
 static void
 on_url_change(GtkWidget* widget, gpointer data)
 {
-  strcpy(szUrl, gtk_entry_get_text(GTK_ENTRY(widget)));
+  strcpy(browser.data.url, gtk_entry_get_text(GTK_ENTRY(widget)));
 }
 
 static void
 on_url_update(WebKitWebView* web, GParamSpec* pspec, gpointer data)
 {
-  strcpy(szUrl, webkit_web_view_get_uri(web));
-  gtk_entry_set_text(GTK_ENTRY(browser.window.widget.url), szUrl);
+  strcpy(browser.data.url, webkit_web_view_get_uri(web));
+  gtk_entry_set_text(GTK_ENTRY(browser.window.widget.url), browser.data.url);
 }
 
 static void
 on_url_fetch(GtkWidget* widget, gpointer web)
 {
-  if (strncmp(szUrl, "https://", 8) != 0)
+  if (strncmp(browser.data.url, "https://", 8) != 0)
   {
     char buffer[1024] = {0};
     strcpy(buffer, "https://");
-    strcat(buffer, szUrl);
-    strcpy(szUrl, buffer);
+    strcat(buffer, browser.data.url);
+    strcpy(browser.data.url, buffer);
   }
 
-  webkit_web_view_load_uri(web, szUrl);
+  webkit_web_view_load_uri(web, browser.data.url);
 }
 
 static void
@@ -171,25 +146,26 @@ setup_browser(int argc, char** argv)
   browser.window.widget.url = gtk_entry_new();
   gtk_entry_set_placeholder_text(GTK_ENTRY(browser.window.widget.url), "Type the URL link here...");
   g_signal_connect(browser.window.widget.url, "changed", G_CALLBACK(on_url_change), NULL);
-  gtk_entry_set_text(GTK_ENTRY(browser.window.widget.url), szUrl);
+  gtk_entry_set_text(GTK_ENTRY(browser.window.widget.url), browser.data.url);
   gtk_box_pack_start(GTK_BOX(browser.window.widget.hbox), browser.window.widget.url, TRUE, TRUE, 1);
 
   browser.window.widget.search = gtk_button_new_with_label("→");
   gtk_box_pack_end(GTK_BOX(browser.window.widget.hbox), GTK_WIDGET(browser.window.widget.search), FALSE, FALSE, 1);
 
-  browser.window.widget.monitor = WEBKIT_WEB_VIEW(webkit_web_view_new());
-  gtk_box_pack_end(GTK_BOX(browser.window.widget.vbox), GTK_WIDGET(browser.window.widget.monitor), TRUE, TRUE, 0);
-  g_signal_connect(browser.window.widget.monitor, "notify::uri", G_CALLBACK(on_url_update), NULL);
-  g_signal_connect(browser.window.widget.url, "activate", G_CALLBACK(on_url_fetch), browser.window.widget.monitor);
-  g_signal_connect(browser.window.widget.back, "clicked", G_CALLBACK(on_url_history_back), browser.window.widget.monitor);
-  g_signal_connect(browser.window.widget.forward, "clicked", G_CALLBACK(on_url_history_forward), browser.window.widget.monitor);
-  g_signal_connect(browser.window.widget.reload, "clicked", G_CALLBACK(on_url_reload), browser.window.widget.monitor);
-  g_signal_connect(browser.window.widget.search, "clicked", G_CALLBACK(on_fetch_click), browser.window.widget.monitor);
+  browser.window.widget.web.view = WEBKIT_WEB_VIEW(webkit_web_view_new());
+  gtk_box_pack_end(GTK_BOX(browser.window.widget.vbox), GTK_WIDGET(browser.window.widget.web.view), TRUE, TRUE, 0);
+  g_signal_connect(browser.window.widget.web.view, "load-changed", G_CALLBACK(on_cookie_handle), NULL);
+  g_signal_connect(browser.window.widget.web.view, "notify::uri", G_CALLBACK(on_url_update), NULL);
+  g_signal_connect(browser.window.widget.url, "activate", G_CALLBACK(on_url_fetch), browser.window.widget.web.view);
+  g_signal_connect(browser.window.widget.back, "clicked", G_CALLBACK(on_url_history_back), browser.window.widget.web.view);
+  g_signal_connect(browser.window.widget.forward, "clicked", G_CALLBACK(on_url_history_forward), browser.window.widget.web.view);
+  g_signal_connect(browser.window.widget.reload, "clicked", G_CALLBACK(on_url_reload), browser.window.widget.web.view);
+  g_signal_connect(browser.window.widget.search, "clicked", G_CALLBACK(on_fetch_click), browser.window.widget.web.view);
 
   if (isFirstLaunch == 1)
   {
-    strcpy(szUrl, "https://www.duckduckgo.com");
-    on_url_fetch(NULL, browser.window.widget.monitor);
+    strcpy(browser.data.url, "https://www.duckduckgo.com");
+    on_url_fetch(NULL, browser.window.widget.web.view);
     isFirstLaunch = 0;
   }
 

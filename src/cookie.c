@@ -1,0 +1,48 @@
+#include "browser.h"
+
+#if defined(DEBUG)
+  static void
+  on_cookie_request(GObject* source, GAsyncResult* result, gpointer data)
+  {
+    browser.data.cookie = WEBKIT_COOKIE_MANAGER(source);
+
+    GList *cookies = webkit_cookie_manager_get_cookies_finish(browser.data.cookie, result, NULL);
+    GList *list = NULL;
+
+    for (list=cookies; list!=NULL; list=g_list_next(list))
+    {
+      SoupCookie* cookie = (SoupCookie*)(list->data);
+      g_print("Cookie: %s=%s\n", soup_cookie_get_name(cookie), soup_cookie_get_value(cookie));
+      soup_cookie_free(cookie);
+    }
+    g_list_free(cookies);
+  }
+#endif
+
+void
+on_cookie_handle(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
+{
+  if (event == WEBKIT_LOAD_FINISHED)
+  {
+    browser.data.cookie = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(web));
+
+    webkit_cookie_manager_set_persistent_storage
+    (
+      browser.data.cookie,
+      root.assets.cookies,
+      WEBKIT_COOKIE_PERSISTENT_STORAGE_TEXT
+    );
+
+    #if defined(DEBUG)
+      webkit_cookie_manager_get_cookies
+      (
+        browser.data.cookie,
+        browser.data.url,
+        NULL,
+        on_cookie_request,
+        NULL
+      );
+    #endif
+  }
+}
+

@@ -27,7 +27,7 @@ ifndef CFLAGS
 	CFLAGS += -Wno-typedef-redefinition
 endif
 
-CFLAGS += $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0)
+CFLAGS += $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
 
 ESCAPE        := \033
 RED           := $(ESCAPE)[31m
@@ -50,7 +50,7 @@ SRC_DIR       := $(PWD)/src
 BIN_DIR       := $(PWD)/bin
 DIRS          := bin .obj
 HEADERS       := -I./src
-LIBRARIES     := $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0)
+LIBRARIES     := $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
 
 ifndef MINGW_CHOST
 	LIBRARIES   +=
