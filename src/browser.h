@@ -12,23 +12,22 @@ typedef struct Browser
     WebKitCookieManager* cookie;
     char url[2048];
   } data;
-  struct WindowUI
+  struct BrowserWindow
   {
     GtkWidget* def;
     GdkPixbuf* icon;
-    struct WindowWidgetUI
-    {
-      GtkWidget* vbox;
-      GtkWidget* hbox;
-      GtkWidget* back;
-      GtkWidget* forward;
-      GtkWidget* reload;
-      GtkWidget* url;
-      GtkWidget* search;
-      struct WindowWidgetWebUI
-      { WebKitWebView* view; } web;
-    } widget;
   } window;
+  struct BrowserWidget
+  {
+    GtkWidget* vbox;
+    GtkWidget* hbox;
+    GtkWidget* back;
+    GtkWidget* forward;
+    GtkWidget* reload;
+    GtkWidget* url;
+    GtkWidget* search;
+    WebKitWebView* web;
+  } widget;
 } Browser;
 
 typedef struct BrowserDirectory
@@ -42,8 +41,8 @@ typedef struct BrowserDirectory
   } assets;
 } BrowserDirectory;
 
-extern Browser          browser;
-extern BrowserDirectory root;
+extern Browser          FB;
+extern BrowserDirectory ROOT;
 
 void setup_browser(int argc, char** argv);
 void run_browser(void);
