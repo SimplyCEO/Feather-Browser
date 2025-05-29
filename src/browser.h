@@ -10,23 +10,26 @@ typedef struct Browser
   struct BrowserData
   {
     WebKitCookieManager* cookie;
-    char url[2048];
   } data;
   struct BrowserWindow
   {
     GtkWidget* def;
     GdkPixbuf* icon;
   } window;
+  struct BrowserContainer
+  {
+    GtkWidget* main;
+    GtkWidget* tool;
+    GtkWidget* tab;
+    GtkWidget* web;
+  } box;
   struct BrowserWidget
   {
-    GtkWidget* vbox;
-    GtkWidget* hbox;
     GtkWidget* back;
     GtkWidget* forward;
     GtkWidget* reload;
     GtkWidget* url;
     GtkWidget* search;
-    WebKitWebView* web;
   } widget;
 } Browser;
 

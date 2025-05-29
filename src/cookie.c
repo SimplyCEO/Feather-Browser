@@ -1,4 +1,5 @@
 #include "browser.h"
+#include "tab.h"
 
 #if defined(DEBUG)
   static void
@@ -22,9 +23,12 @@
 void
 on_cookie_handle(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
 {
+  BrowserTabID ID = GPOINTER_TO_INT(data);
+  BrowserTab tab = fb_sdk_get_tab(ID);
+
   if (event == WEBKIT_LOAD_FINISHED)
   {
-    FB.data.cookie = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(web));
+    FB.data.cookie = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(tab.web));
 
     webkit_cookie_manager_set_persistent_storage
     (
