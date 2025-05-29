@@ -58,12 +58,30 @@ on_url_search(GtkWidget* widget, gpointer data)
 {
   update_tab_id(data);
 
-  if (strncmp(tab[ID].url, "https://", 8) != 0)
+  if ((strncmp(tab[ID].url, "http://", 7) != 0) & (strncmp(tab[ID].url, "https://", 8) != 0))
   {
-    char buffer[1024] = {0};
-    strcpy(buffer, "https://");
-    strcat(buffer, tab[ID].url);
-    strcpy(tab[ID].url, buffer);
+    unsigned char website = 0, ip = 0;
+    unsigned short i = 0, urllen = strlen(tab[ID].url)+1;
+    for (i=0; i<urllen; i++)
+    {
+      switch (tab[ID].url[i])
+      {
+        case '.': website = 1; break;
+        case ':': ip = 1; website = 0; break;
+        default: break;
+      }
+    }
+
+    if (ip == 0)
+    {
+      char buffer[1024] = {0};
+      if (website == 1)
+      { strcpy(buffer, "https://"); }
+      else
+      { strcpy(buffer, "https://duckduckgo.com/?q="); }
+      strcat(buffer, tab[ID].url);
+      strcpy(tab[ID].url, buffer);
+    }
   }
 
   webkit_web_view_load_uri(tab[ID].web, tab[ID].url);
