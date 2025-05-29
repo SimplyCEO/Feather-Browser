@@ -161,7 +161,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
 
   tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
   gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
-  strcpy(tab[ID].url, "https://www.duckduckgo.com");
+  strcpy(tab[ID].url, "https://simplyceo.github.io/main_page");
 
   g_signal_connect(tab[ID].button,        "clicked",      G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
 
