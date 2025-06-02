@@ -65,3 +65,12 @@ cp Feather_Browser.desktop "/usr/share/applications"
 
 </details>
 
+Gallery
+-------
+
+<p align="left">
+  <a href="/.media/screenshots/feather_browser_0.png">
+    <img src="/.media/screenshots/lowres_feather_browser_0.png" width="192" title="Feather Browser Technologic">
+  </a>
+</p>
+
