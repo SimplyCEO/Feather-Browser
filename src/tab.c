@@ -11,7 +11,7 @@
 WebKitWebView* tmp_web_view = NULL;
 
 BrowserTab tab[16] = {0};
-BrowserTabID ID = 0;
+BrowserTabID ID = 0, TabPosition = 1;
 BrowserTabID tab_count = 0;
 
 /* =========================================================================== */
@@ -158,6 +158,8 @@ fb_sdk_create_new_tab(GtkWidget* container)
 
   tab[ID].button = gtk_button_new_with_label(tab[ID].title);
   gtk_box_pack_start(GTK_BOX(container), tab[ID].button, FALSE, FALSE, 3);
+  gtk_box_reorder_child(GTK_BOX(container), tab[ID].button, TabPosition-1);
+  TabPosition++;
 
   tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
   gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);

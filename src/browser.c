@@ -112,11 +112,11 @@ setup_browser(int argc, char** argv)
   FB.widget.search = gtk_button_new_with_label("→");
   gtk_box_pack_end(GTK_BOX(FB.box.tool), GTK_WIDGET(FB.widget.search), FALSE, FALSE, 1);
 
-  fb_sdk_create_new_tab(FB.box.tab);
-
   GtkWidget* newtab = gtk_button_new_with_label("+");
-  gtk_box_pack_end(GTK_BOX(FB.box.tab), newtab, FALSE, FALSE, 3);
+  gtk_box_pack_start(GTK_BOX(FB.box.tab), newtab, FALSE, FALSE, 3);
   g_signal_connect(newtab, "clicked", G_CALLBACK(on_new_tab), FB.box.tab);
+
+  fb_sdk_create_new_tab(FB.box.tab);
 
   /* Render application */
 
