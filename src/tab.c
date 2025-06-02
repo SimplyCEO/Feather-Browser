@@ -133,6 +133,32 @@ set_tab_url(const char* url)
 }
 
 static void
+set_tab_title(const char* title)
+{
+  int titlelen = strlen(title);
+  strncpy(tab[ID].title, title, 23);
+  tab[ID].title[23] = '\0';
+  switch (titlelen)
+  {
+    case 0 ... 23: break;
+    default:
+    {
+      char c = 0;
+      if ((tab[ID].title[20] != '.') &&
+          (tab[ID].title[21] != '.') &&
+          (tab[ID].title[22] != '.'))
+      { c = '.'; }
+
+      tab[ID].title[20] = c;
+      tab[ID].title[21] = c;
+      tab[ID].title[22] = c;
+    } break;
+  }
+
+  gtk_button_set_label(GTK_BUTTON(tab[ID].button), tab[ID].title);
+}
+
+static void
 on_tab_click(GtkButton* button, gpointer data)
 {
   update_tab_id(data);
@@ -145,6 +171,14 @@ on_tab_click(GtkButton* button, gpointer data)
   web_view_reference = tab[ID].web;
 }
 
+static void
+update_tab_title(WebKitWebView* web, GParamSpec* pspec, gpointer data)
+{
+  update_tab_id(data);
+
+  set_tab_title(webkit_web_view_get_title(tab[ID].web));
+}
+
 /* =========================================================================== */
 
 BrowserTabID
@@ -154,7 +188,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
 
   BrowserTabID ID = tab[tab_count].ID = tab_count;
 
-  sprintf(tab[ID].title, "New tab %d", ID+1);
+  sprintf(tab[ID].title, "New tab");
 
   tab[ID].button = gtk_button_new_with_label(tab[ID].title);
   gtk_box_pack_start(GTK_BOX(container), tab[ID].button, FALSE, FALSE, 3);
@@ -165,18 +199,19 @@ fb_sdk_create_new_tab(GtkWidget* container)
   gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
   strcpy(tab[ID].url, "https://simplyceo.github.io/main_page");
 
-  g_signal_connect(tab[ID].button,        "clicked",      G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].button,        "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
 
-  g_signal_connect(tab[ID].web,           "load-changed", G_CALLBACK(on_cookie_handle),       GINT_TO_POINTER(ID));
-  g_signal_connect(tab[ID].web,           "notify::uri",  G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_cookie_handle),       GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));
 
-  g_signal_connect(FB.widget.url,         "changed",      G_CALLBACK(on_url_change),          GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.url,         "activate",     G_CALLBACK(on_url_search),          GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.url,         "changed",        G_CALLBACK(on_url_change),          GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.url,         "activate",       G_CALLBACK(on_url_search),          GINT_TO_POINTER(ID));
 
-  g_signal_connect(FB.widget.back,        "clicked",      G_CALLBACK(on_url_history_back),    GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.forward,     "clicked",      G_CALLBACK(on_url_history_forward), GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.reload,      "clicked",      G_CALLBACK(on_url_reload),          GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.search,      "clicked",      G_CALLBACK(on_search_click),        GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.back,        "clicked",        G_CALLBACK(on_url_history_back),    GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.forward,     "clicked",        G_CALLBACK(on_url_history_forward), GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.reload,      "clicked",        G_CALLBACK(on_url_reload),          GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(ID));
 
   on_url_search(NULL, GINT_TO_POINTER(ID));
   on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, GINT_TO_POINTER(ID));

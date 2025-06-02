@@ -8,7 +8,7 @@ typedef struct BrowserTab
   BrowserTabID    ID;
   WebKitWebView*  web;
   GtkWidget*      button;
-  char            title[128];
+  char            title[24];
   char            url[2048];
 } BrowserTab;
 
