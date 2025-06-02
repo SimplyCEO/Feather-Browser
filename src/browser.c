@@ -56,7 +56,7 @@ on_new_tab(GtkButton* button, GtkWidget* container)
 {
   fb_sdk_create_new_tab(container);
 
-  gtk_widget_show_all(FB.window.def);
+  gtk_widget_show_all(FB.box.tab);
 }
 
 /* =========================================================================== */
