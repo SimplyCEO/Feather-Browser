@@ -135,7 +135,10 @@ set_tab_url(const char* url)
 static void
 set_tab_title(const char* title)
 {
+  if (title == NULL) { return; }
   int titlelen = strlen(title);
+  if (titlelen < 1) { return; }
+
   strncpy(tab[ID].title, title, 23);
   tab[ID].title[23] = '\0';
   switch (titlelen)
