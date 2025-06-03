@@ -43,7 +43,7 @@ on_url_change(GtkWidget* widget, gpointer data)
 {
   update_tab_id(data);
 
-  if (gtk_widget_get_visible(GTK_WIDGET(tab[ID].web)))
+  if (gtk_widget_get_visible(GTK_WIDGET(web_view_reference)))
   { strcpy(tab[ID].url, gtk_entry_get_text(GTK_ENTRY(widget))); }
 }
 
@@ -52,9 +52,9 @@ on_url_update(WebKitWebView* web, GParamSpec* pspec, gpointer data)
 {
   update_tab_id(data);
 
-  if (gtk_widget_get_visible(GTK_WIDGET(tab[ID].web)))
+  if (gtk_widget_get_visible(GTK_WIDGET(web_view_reference)))
   {
-    strcpy(tab[ID].url, webkit_web_view_get_uri(tab[ID].web));
+    strcpy(tab[ID].url, webkit_web_view_get_uri(web_view_reference));
     gtk_entry_set_text(GTK_ENTRY(FB.widget.url), tab[ID].url);
   }
 }
@@ -90,7 +90,7 @@ on_url_search(GtkWidget* widget, gpointer data)
     }
   }
 
-  webkit_web_view_load_uri(tab[ID].web, tab[ID].url);
+  webkit_web_view_load_uri(web_view_reference, tab[ID].url);
 }
 
 static void
@@ -98,8 +98,8 @@ on_search_click(GtkButton* button, gpointer data)
 {
   update_tab_id(data);
 
-  if (gtk_widget_get_visible(GTK_WIDGET(tab[ID].web)))
-  { on_url_search(NULL, tab[ID].web); }
+  if (gtk_widget_get_visible(GTK_WIDGET(web_view_reference)))
+  { on_url_search(NULL, web_view_reference); }
 }
 
 /* --------------------------------------------------------------------------- */
@@ -109,8 +109,8 @@ on_url_history_back(GtkButton* button, gpointer data)
 {
   update_tab_id(data);
 
-  if (webkit_web_view_can_go_back(tab[ID].web))
-  { webkit_web_view_go_back(tab[ID].web); }
+  if (webkit_web_view_can_go_back(web_view_reference))
+  { webkit_web_view_go_back(web_view_reference); }
 }
 
 static void
@@ -118,8 +118,8 @@ on_url_history_forward(GtkButton* button, gpointer data)
 {
   update_tab_id(data);
 
-  if (webkit_web_view_can_go_forward(tab[ID].web))
-  { webkit_web_view_go_forward(tab[ID].web); }
+  if (webkit_web_view_can_go_forward(web_view_reference))
+  { webkit_web_view_go_forward(web_view_reference); }
 }
 
 static void
@@ -127,7 +127,7 @@ on_url_reload(GtkButton* button, gpointer data)
 {
   update_tab_id(data);
 
-  webkit_web_view_reload(tab[ID].web);
+  webkit_web_view_reload(web_view_reference);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -135,7 +135,7 @@ on_url_reload(GtkButton* button, gpointer data)
 static void
 set_tab_url(const char* url)
 {
-  gtk_entry_set_text(GTK_ENTRY(FB.widget.url), tab[ID].url);
+  gtk_entry_set_text(GTK_ENTRY(FB.widget.url), url);
 }
 
 static void
@@ -184,7 +184,7 @@ update_tab_title(WebKitWebView* web, GParamSpec* pspec, gpointer data)
 {
   update_tab_id(data);
 
-  set_tab_title(webkit_web_view_get_title(tab[ID].web));
+  set_tab_title(webkit_web_view_get_title(web_view_reference));
 }
 
 /* =========================================================================== */
@@ -203,15 +203,15 @@ fb_sdk_create_new_tab(GtkWidget* container)
   gtk_box_reorder_child(GTK_BOX(container), tab[ID].button, TabPosition-1);
   TabPosition++;
 
-  tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
-  gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
+  web_view_reference = tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
+  gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(web_view_reference), TRUE, TRUE, 0);
   strcpy(tab[ID].url, "https://simplyceo.github.io/main_page");
 
   g_signal_connect(tab[ID].button,        "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
 
-  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_cookie_handle),       GINT_TO_POINTER(ID));
-  g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
-  g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));
+  g_signal_connect(web_view_reference,    "load-changed",   G_CALLBACK(on_cookie_handle),       GINT_TO_POINTER(ID));
+  g_signal_connect(web_view_reference,    "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
+  g_signal_connect(web_view_reference,    "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));
 
   g_signal_connect(FB.widget.url,         "changed",        G_CALLBACK(on_url_change),          GINT_TO_POINTER(ID));
   g_signal_connect(FB.widget.url,         "activate",       G_CALLBACK(on_url_search),          GINT_TO_POINTER(ID));
@@ -222,8 +222,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
   g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(ID));
 
   on_url_search(NULL, GINT_TO_POINTER(ID));
-  on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, GINT_TO_POINTER(ID));
-  web_view_reference = tab[ID].web;
+  on_cookie_handle(web_view_reference, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, GINT_TO_POINTER(ID));
   control_web_view_reference(1);
 
   tab_count++;
