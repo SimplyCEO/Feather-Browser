@@ -99,7 +99,7 @@ on_search_click(GtkButton* button, gpointer data)
   update_tab_id(data);
 
   if (gtk_widget_get_visible(GTK_WIDGET(web_view_reference)))
-  { on_url_search(NULL, web_view_reference); }
+  { on_url_search(NULL, data); }
 }
 
 /* --------------------------------------------------------------------------- */
