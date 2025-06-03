@@ -12,6 +12,12 @@ typedef struct BrowserTab
   char            url[2048];
 } BrowserTab;
 
+typedef enum WebViewReferenceMode
+{
+  HIDE_WEBVIEWREFERENCE = 0,
+  SHOW_WEBVIEWREFERENCE = 1
+} WebViewReferenceMode;
+
 BrowserTabID fb_sdk_create_new_tab(GtkWidget* container);
 BrowserTab  fb_sdk_get_tab(BrowserTabID ID);
 

@@ -23,10 +23,16 @@ update_tab_id(gpointer data)
 }
 
 static void
-hide_web_view_reference(void)
+control_web_view_reference(WebViewReferenceMode mode)
 {
   if (web_view_reference != NULL)
-  { gtk_widget_hide(GTK_WIDGET(web_view_reference)); }
+  {
+    switch (mode)
+    {
+      case HIDE_WEBVIEWREFERENCE: gtk_widget_hide(GTK_WIDGET(web_view_reference)); break;
+      case SHOW_WEBVIEWREFERENCE: gtk_widget_show(GTK_WIDGET(web_view_reference)); break;
+    }
+  }
 }
 
 
@@ -164,14 +170,13 @@ set_tab_title(const char* title)
 static void
 on_tab_click(GtkButton* button, gpointer data)
 {
+  control_web_view_reference(0);
+
   update_tab_id(data);
-
   set_tab_url(tab[ID].url);
-
-  hide_web_view_reference();
-
-  gtk_widget_show(GTK_WIDGET(tab[ID].web));
   web_view_reference = tab[ID].web;
+
+  control_web_view_reference(1);
 }
 
 static void
@@ -187,7 +192,7 @@ update_tab_title(WebKitWebView* web, GParamSpec* pspec, gpointer data)
 BrowserTabID
 fb_sdk_create_new_tab(GtkWidget* container)
 {
-  hide_web_view_reference();
+  control_web_view_reference(0);
 
   BrowserTabID ID = tab[tab_count].ID = tab_count;
 
@@ -219,7 +224,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
   on_url_search(NULL, GINT_TO_POINTER(ID));
   on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, GINT_TO_POINTER(ID));
   web_view_reference = tab[ID].web;
-  gtk_widget_show(GTK_WIDGET(web_view_reference));
+  control_web_view_reference(1);
 
   tab_count++;
 
