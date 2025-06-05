@@ -7,9 +7,18 @@ typedef struct BrowserTab
 {
   BrowserTabID    ID;
   WebKitWebView*  web;
-  GtkWidget*      button;
+  struct BrowsetTabContainer
+  {
+    GtkWidget*    button;
+  } box;
+  struct BrowserTabButton
+  {
+    GtkWidget*    tab;
+    GtkWidget*    close;
+  } button;
   char            title[24];
   char            url[2048];
+  unsigned char   garbage;
 } BrowserTab;
 
 typedef enum WebViewReferenceMode
