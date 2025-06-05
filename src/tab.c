@@ -244,7 +244,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
     for (i=0; i<=tab_count; i++)
     {
       if (tab[i].garbage == 1)
-      { ID = i; countTabIncrease = 0; tab[i].garbage = 0; break; }
+      { ID = i; tab[ID].ID = ID; tab[ID].garbage = 0; countTabIncrease = 0; break; }
     }
   }
 
