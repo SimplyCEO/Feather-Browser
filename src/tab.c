@@ -35,6 +35,25 @@ control_web_view_reference(WebViewReferenceMode mode)
   }
 }
 
+static char*
+load_html_file(const char* path)
+{
+  FILE* stream = fopen(path, "r");
+  if (stream == NULL)
+  { return NULL; }
+
+  fseek(stream, 0, SEEK_END);
+  long streamsize = ftell(stream);
+  rewind(stream);
+
+  char* contents = (char*)malloc(streamsize+1);
+  fread(contents, streamsize, 1, stream);
+  contents[streamsize] = '\0';
+
+  fclose(stream);
+  return contents;
+}
+
 
 /* --------------------------------------------------------------------------- */
 
@@ -84,7 +103,7 @@ on_url_search(GtkWidget* widget, gpointer data)
       if (website == 1)
       { strcpy(buffer, "https://"); }
       else
-      { strcpy(buffer, "https://duckduckgo.com/?q="); }
+      { strcpy(buffer, "https://html.duckduckgo.com/html/?q="); }
       strcat(buffer, tab[ID].url);
       strcpy(tab[ID].url, buffer);
     }
@@ -264,7 +283,6 @@ fb_sdk_create_new_tab(GtkWidget* container)
 
   web_view_reference = tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
   gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(web_view_reference), TRUE, TRUE, 0);
-  strcpy(tab[ID].url, "https://simplyceo.github.io/main_page");
 
   g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
   g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(ID));
@@ -281,7 +299,18 @@ fb_sdk_create_new_tab(GtkWidget* container)
   g_signal_connect(FB.widget.reload,      "clicked",        G_CALLBACK(on_url_reload),          GINT_TO_POINTER(ID));
   g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(ID));
 
-  on_url_search(NULL, GINT_TO_POINTER(ID));
+  char *html_file = load_html_file(ROOT.assets.launcher);
+  if (html_file == NULL)
+  {
+    strcpy(tab[ID].url, "https://html.duckduckgo.com/html/");
+    set_tab_url(tab[ID].url);
+    on_url_search(NULL, GINT_TO_POINTER(ID));
+  }
+  else
+  {
+    webkit_web_view_load_html(web_view_reference, html_file, NULL);
+    free(html_file);
+  }
   on_cookie_handle(web_view_reference, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, GINT_TO_POINTER(ID));
   control_web_view_reference(1);
 

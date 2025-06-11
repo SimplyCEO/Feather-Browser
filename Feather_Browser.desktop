@@ -2,7 +2,7 @@
 Version=1.0
 Name=Feather Browser
 Exec=feather_browser
-Icon=feather_browser_icon
+Icon=/usr/share/feather_browser/assets/icon.png
 Terminal=false
 Type=Application
-Categories=Internet;
+Categories=Network;

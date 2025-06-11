@@ -8,6 +8,7 @@
 #include "tab.h"
 
 Browser FB = {0};
+BrowserDirectory HOME = {0};
 BrowserDirectory ROOT = {0};
 
 unsigned char isFirstLaunch = 1;
@@ -20,25 +21,21 @@ setup_directory(void)
   const char* home = getenv("HOME");
   struct stat s = {0};
 
-  strcpy(ROOT.def, home);
-  strcat(ROOT.def, "/.local/share/feather_browser");
-  if (stat(ROOT.def, &s) == -1)
-  {
-    mkdir(ROOT.def, 0700);
-  }
+  strcpy(ROOT.def, "/usr/share/feather_browser");
+  sprintf(ROOT.assets.def, "%s/assets", ROOT.def);
 
-  strcpy(ROOT.assets.def, ROOT.def);
-  strcat(ROOT.assets.def, "/assets");
-  if (stat(ROOT.assets.def, &s) == -1)
-  {
-    mkdir(ROOT.assets.def, 0700);
-  }
+  sprintf(HOME.def, "%s/.local/share/feather_browser", home);
+  sprintf(HOME.assets.def, "%s/assets", HOME.def);
 
-  strcpy(ROOT.assets.cookies, ROOT.assets.def);
-  strcat(ROOT.assets.cookies, "/cookies.dat");
+  if (stat(HOME.def, &s) == -1)
+  { mkdir(HOME.def, 0700); }
+  if (stat(HOME.assets.def, &s) == -1)
+  { mkdir(HOME.assets.def, 0700); }
 
-  strcpy(ROOT.assets.icon, ROOT.assets.def);
-  strcat(ROOT.assets.icon, "/icon.png");
+  sprintf(ROOT.assets.icon, "%s/icon.png", ROOT.assets.def);
+  sprintf(ROOT.assets.launcher, "%s/launcher/index.html", ROOT.assets.def);
+
+  sprintf(HOME.assets.cookies, "%s/cookies.dat", HOME.assets.def);
 }
 
 /* =========================================================================== */

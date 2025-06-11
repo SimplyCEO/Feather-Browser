@@ -1,7 +1,7 @@
 <img src="./assets/icon_git.png" width="32" title="Feather Browser"> Feather Browser
 ====================================================================================
 
-A quick example of a browser, made in pure C using GTK3 and WebKit2GTK+.
+A quick example of a browser, made in pure ANSI C using GTK3 and WebKit2GTK+.
 
 Usage
 -----
@@ -18,10 +18,9 @@ Or just open `feather_browser` located inside `bin` folder.
 Installation
 ------------
 
-Copy the contents of the `assets` folder to the local browser folder:
+Run the following installation command as root:
 ```shell
-mkdir -p "${HOME}/.local/share/feather_browser"
-cp -r ./assets "${HOME}/.local/share/feather_browser"
+make install
 ```
 
 <details><summary>Local installation</summary>
@@ -35,6 +34,12 @@ export PATH="${HOME}/.local/bin:${PATH}"
 cp bin/feather_browser "${HOME}/.local/bin"
 ```
 
+Copy the contents of the `assets` folder to the local browser folder:
+```shell
+mkdir -p "${HOME}/.local/share/feather_browser"
+cp -r ./assets "${HOME}/.local/share/feather_browser"
+```
+
 Additionaly, the desktop file for Linux devices can be accessed through the menu and/or desktop:
 ```shell
 cp assets/icon.png "${HOME}/.icons/feather_browser_icon.png"
@@ -46,21 +51,7 @@ Remember to add the binary path to the desktop file:
 ```desktop
 Path=/home/username/.local/bin
 Exec=./feather_browser
-```
-
-</details>
-
-<details><summary>System-wide installation</summary>
-
-To install system-wide, the `/usr/local/bin` directory can be used:
-```shell
-cp bin/feather_browser "/usr/.local/bin"
-```
-
-Additionaly, the desktop file for Linux devices can be accessed through the menu and/or desktop:
-```shell
-cp assets/icon.png "/usr/share/icons/feather_browser_icon.png"
-cp Feather_Browser.desktop "/usr/share/applications"
+Icon=./assets/icon.png
 ```
 
 </details>

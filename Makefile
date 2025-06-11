@@ -29,6 +29,10 @@ endif
 
 CFLAGS += $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
 
+ifndef INSTALL_PREFIX
+	INSTALL_PREFIX := /usr
+endif
+
 ESCAPE        := \033
 RED           := $(ESCAPE)[31m
 BOLD_RED      := $(ESCAPE)[1;31m
@@ -84,6 +88,14 @@ directories: $(DIRS)
 $(DIRS):
 	@printf "[DIR] ""$(BLUE)""Directory ""$(BOLD_BLUE)""'$@'""$(RESET_COLOUR)$(BLUE)"" created""$(RESET_COLOUR).""\n"
 	@mkdir -p $(PWD)/$@
+
+install:
+	@mkdir -p $(HOME)/.local/share/feather_browser/assets/
+	@mkdir -p $(INSTALL_PREFIX)/share/feather_browser/assets/
+	@install -m 755 bin/feather_browser $(INSTALL_PREFIX)/bin/
+	@install -m 644 assets/icon.png $(INSTALL_PREFIX)/share/feather_browser/assets/
+	@install -m 644 Feather_Browser.desktop $(INSTALL_PREFIX)/share/applications/
+	@find assets/launcher -type f -exec install -Dm 755 "{}" "$(INSTALL_PREFIX)/share/feather_browser/{}" \;
 
 clean:
 	@rm -rv $(BIN_DIR)/$(_TARGETS) 2>/dev/null || true

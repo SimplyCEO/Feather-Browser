@@ -39,12 +39,14 @@ typedef struct BrowserDirectory
   struct BrowserAssetsDirectory
   {
     char def[1024];
-    char icon[1024];
     char cookies[1024];
+    char icon[1024];
+    char launcher[1024];
   } assets;
 } BrowserDirectory;
 
 extern Browser          FB;
+extern BrowserDirectory HOME;
 extern BrowserDirectory ROOT;
 
 void setup_browser(int argc, char** argv);
