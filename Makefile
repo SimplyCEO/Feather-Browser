@@ -23,11 +23,12 @@ ifndef CFLAGS
 	else ifeq ($(BUILD_TYPE), Debug)
 		CFLAGS += -O0 -g3 -ggdb -Wall
 	endif
-
-	CFLAGS += -Wno-typedef-redefinition
 endif
 
 CFLAGS += $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
+
+# Avoid warnings from dependecy problem
+CFLAGS += -Wno-typedef-redefinition
 
 ifndef INSTALL_PREFIX
 	INSTALL_PREFIX := /usr
