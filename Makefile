@@ -13,9 +13,9 @@ ifndef CFLAGS
 	endif
 
 	ifeq ($(CC), tcc)
-		CFLAGS += -std=c99
+		CFLAGS += -std=c89
 	else
-		CFLAGS += --std=c99
+		CFLAGS += --std=c89
 	endif
 
 	ifeq ($(BUILD_TYPE), Release)
