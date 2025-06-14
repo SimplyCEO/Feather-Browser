@@ -165,9 +165,19 @@ on_tab_close(GtkButton* button, gpointer data)
   close_tab();
 
   FB_SDK_WebViewReference* web_view_reference = fb_sdk_webview_get_reference();
-  if ((web_view_reference == NULL) && (tab[++ID].ID == 0))
+  if (web_view_reference == NULL)
   {
-    ID -= 2;
+    ID++;
+    if (tab[ID].ID == 0)
+    {
+      char i = 0;
+      for (i=tab_count; i>=0; i--)
+      {
+        if (tab[i].garbage == 0)
+        { ID = tab[i].ID; }
+      }
+    }
+
     if (ID < tab_count)
     {
       set_tab_url(tab[ID].url);
@@ -257,7 +267,9 @@ fb_sdk_create_new_tab(GtkWidget* container)
   control_web_view_reference(1);
 
   if (countTabIncrease == 1)
-  { tab_count++; }
+  {
+    tab_count++;
+  }
 
   return ID;
 }
