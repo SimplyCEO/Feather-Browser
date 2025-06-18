@@ -13,8 +13,6 @@ fb_sdk_webview_create_new(void)
 {
   FB_SDK_WebViewReference* webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
-  g_signal_connect(webview, "load-changed", G_CALLBACK(on_cookie_handle), NULL);
-
   return webview;
 }
 
