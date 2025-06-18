@@ -7,21 +7,26 @@ endif
 
 # CORE OPTIONAL (compiler flags)
 
-ifndef CFLAGS
-	ifndef BUILD_TYPE
-		BUILD_TYPE = Debug
-	endif
+ifndef BUILD_TYPE
+	BUILD_TYPE := Debug
+endif
 
+ifndef CFLAGS
 	ifeq ($(CC), tcc)
-		CFLAGS += -std=c89
+		CFLAGS := -std=c89
 	else
-		CFLAGS += --std=c89
+		CFLAGS := --std=c89
 	endif
 
 	ifeq ($(BUILD_TYPE), Release)
-		CFLAGS += -O2
+		ifneq ($(CC), tcc)
+			CFLAGS += -O2
+		endif
 	else ifeq ($(BUILD_TYPE), Debug)
-		CFLAGS += -O0 -g3 -ggdb -Wall
+		ifneq ($(CC), tcc)
+			CFLAGS += -O0
+		endif
+		CFLAGS += -g3 -ggdb -Wall
 	endif
 endif
 
@@ -82,7 +87,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 $(TARGETS): $(OBJECTS)
 	@printf "[BIN] ""$(BOLD_GREEN)""Linking binary '$@'""$(RESET_COLOUR)""\n"
-	@$(CC) $^ $(LIBRARIES) $(HEADERS) -o $@
+	@$(CC) $(CFLAGS) $^ $(LIBRARIES) $(HEADERS) -o $@
 
 directories: $(DIRS)
 
