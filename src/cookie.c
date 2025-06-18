@@ -33,7 +33,7 @@ on_cookie_handle(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
     webkit_cookie_manager_set_persistent_storage
     (
       FB.data.cookie,
-      ROOT.assets.cookies,
+      HOME.assets.cookies,
       WEBKIT_COOKIE_PERSISTENT_STORAGE_TEXT
     );
 
