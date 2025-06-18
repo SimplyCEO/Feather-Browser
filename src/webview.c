@@ -1,11 +1,22 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include "cookie.h"
 #include "webview.h"
 
 FB_SDK_WebViewReference* web_view_reference = NULL;
 
 /* =========================================================================== */
+
+FB_SDK_WebViewReference*
+fb_sdk_webview_create_new(void)
+{
+  FB_SDK_WebViewReference* webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
+
+  g_signal_connect(webview, "load-changed", G_CALLBACK(on_cookie_handle), NULL);
+
+  return webview;
+}
 
 FB_SDK_WebViewReference*
 fb_sdk_webview_get_reference(void)

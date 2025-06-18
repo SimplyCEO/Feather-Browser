@@ -2,7 +2,7 @@
 #define WEBVIEW_HEADER
 
 #include <webkit2/webkit2.h>
-#define FB_SDK_WebViewReference WebKitWebView
+typedef WebKitWebView FB_SDK_WebViewReference;
 
 typedef enum FB_SDK_WebViewReferenceMode
 {
@@ -10,6 +10,7 @@ typedef enum FB_SDK_WebViewReferenceMode
   SHOW_WEBVIEWREFERENCE = 1
 } WebViewReferenceMode;
 
+FB_SDK_WebViewReference* fb_sdk_webview_create_new(void);
 FB_SDK_WebViewReference* fb_sdk_webview_get_reference(void);
 void fb_sdk_webview_set_reference(FB_SDK_WebViewReference* webview);
 void control_web_view_reference(WebViewReferenceMode mode);

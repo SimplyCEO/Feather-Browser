@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cookie.h"
 #include "browser.h"
+#include "cookie.h"
 #include "tab.h"
 #include "tools.h"
-#include "webview.h"
 
 BrowserTab tab[16] = {0};
 BrowserTabID ID = 0, TabPosition = 1;
@@ -232,14 +231,13 @@ fb_sdk_create_new_tab(GtkWidget* container)
   TabPosition++;
 
   FB_SDK_WebViewReference* web_view_reference = fb_sdk_webview_get_reference();
-  web_view_reference = tab[ID].web = WEBKIT_WEB_VIEW(webkit_web_view_new());
+  web_view_reference = tab[ID].web = fb_sdk_webview_create_new();
   gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(web_view_reference), TRUE, TRUE, 0);
   fb_sdk_webview_set_reference(web_view_reference);
 
   g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
   g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(ID));
 
-  g_signal_connect(web_view_reference,    "load-changed",   G_CALLBACK(on_cookie_handle),       GINT_TO_POINTER(ID));
   g_signal_connect(web_view_reference,    "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
   g_signal_connect(web_view_reference,    "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));
 

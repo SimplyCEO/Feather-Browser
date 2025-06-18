@@ -1,12 +1,14 @@
 #ifndef TAB_HEADER
 #define TAB_HEADER
 
+#include "webview.h"
+
 typedef unsigned char BrowserTabID;
 
 typedef struct BrowserTab
 {
   BrowserTabID    ID;
-  WebKitWebView*  web;
+  FB_SDK_WebViewReference*  web;
   struct BrowsetTabContainer
   {
     GtkWidget*    button;
