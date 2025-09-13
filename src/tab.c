@@ -80,6 +80,17 @@ on_url_history_forward(GtkButton* button, gpointer data)
 }
 
 static void
+on_url_load(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
+{
+  switch (event)
+  {
+    case WEBKIT_LOAD_STARTED: fb_sdk_webview_load_page(); break;
+    case WEBKIT_LOAD_FINISHED: gtk_button_set_label(GTK_BUTTON(FB.widget.reload), "↑↓"); break;
+    default: break;
+  }
+}
+
+static void
 on_url_reload(GtkButton* button, gpointer data)
 {
   fb_sdk_webview_reload_page();
@@ -236,6 +247,7 @@ fb_sdk_create_new_tab(GtkWidget* container)
   g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
   g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(ID));
 
+  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_url_load),            GINT_TO_POINTER(ID));
   g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_cookie_handle),       NULL);
   g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
   g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));

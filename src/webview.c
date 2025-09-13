@@ -1,6 +1,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include "browser.h"
 #include "cookie.h"
 #include "webview.h"
 
@@ -98,7 +99,21 @@ fb_sdk_webview_go_forward_on_history(void)
 }
 
 void
+fb_sdk_webview_load_page(void)
+{
+  if (webkit_web_view_is_loading(web_view_reference) == 1)
+  { gtk_button_set_label(GTK_BUTTON(FB.widget.reload), "X"); }
+}
+
+void
 fb_sdk_webview_reload_page(void)
 {
+  const char* label = gtk_button_get_label(GTK_BUTTON(FB.widget.reload));
+  if (*label == 'X')
+  {
+    webkit_web_view_stop_loading(web_view_reference);
+    gtk_button_set_label(GTK_BUTTON(FB.widget.reload), "↑↓");
+    return;
+  }
   webkit_web_view_reload(web_view_reference);
 }

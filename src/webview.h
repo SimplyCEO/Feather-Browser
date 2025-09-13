@@ -21,6 +21,7 @@ void fb_sdk_webview_search_url(char* url);
 void fb_sdk_webview_go_back_on_history(void);
 void fb_sdk_webview_go_forward_on_history(void);
 
+void fb_sdk_webview_load_page(void);
 void fb_sdk_webview_reload_page(void);
 
 #endif
