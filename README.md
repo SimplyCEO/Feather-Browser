@@ -63,5 +63,8 @@ Gallery
   <a href="/.media/screenshots/feather_browser_0.png">
     <img src="/.media/screenshots/lowres_feather_browser_0.png" width="192" title="Feather Browser Technologic">
   </a>
+  <a href="/.media/screenshots/feather_browser_1.png">
+    <img src="/.media/screenshots/lowres_feather_browser_1.png" width="192" title="Feather Browser Repository">
+  </a>
 </p>
 
