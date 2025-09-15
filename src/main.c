@@ -1,5 +1,6 @@
+#include "widgets.h"
 #include "browser.h"
-  
+
 int
 main(int argc, char** argv)
 {

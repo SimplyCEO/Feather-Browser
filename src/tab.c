@@ -2,11 +2,13 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
+#include "widgets.h"
+#include "tools.h"
 #include "browser.h"
 #include "cookie.h"
 #include "tab.h"
-#include "tools.h"
 
 BrowserTab tab[16] = {0};
 BrowserTabID ID = 0, TabPosition = 1;
@@ -21,16 +23,16 @@ update_tab_id(gpointer data)
 }
 
 static void
-update_tab_url(char* url, GtkWidget* entry)
+update_tab_url(char* url, FBWidget* entry)
 {
-  if (fb_sdk_webview_get_view() == 1)
-  { strcpy(url, gtk_entry_get_text(GTK_ENTRY(entry))); }
+  if (CWidget.WebView.Visible(SELF) == true)
+  { strcpy(url, CWidget.Entry.GetLabel(entry)); }
 }
 
 /* --------------------------------------------------------------------------- */
 
 static void
-on_url_change(GtkWidget* widget, gpointer data)
+on_url_change(FBWidget* widget, gpointer data)
 {
   update_tab_id(data);
 
@@ -38,93 +40,76 @@ on_url_change(GtkWidget* widget, gpointer data)
 }
 
 static void
-on_url_update(WebKitWebView* web, GParamSpec* pspec, gpointer data)
+on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
   update_tab_id(data);
 
-  if (fb_sdk_webview_get_view() == 1)
-  { gtk_entry_set_text(GTK_ENTRY(FB.widget.url), webkit_web_view_get_uri(fb_sdk_webview_get_reference())); }
+  if (CWidget.WebView.Visible(web_view) == true)
+  { CWidget.Entry.SetLabel(FB.widget.url, CWidget.WebView.GetURI(web_view)); }
 
   update_tab_url(tab[ID].url, FB.widget.url);
 }
 
 static void
-on_url_search(GtkWidget* widget, gpointer data)
+on_url_search(FBWidget* widget, gpointer data)
 {
   update_tab_id(data);
 
-  fb_sdk_webview_search_url(tab[ID].url);
+  CWidget.WebView.Search(SELF, tab[ID].url);
 }
 
 static void
-on_search_click(GtkButton* button, gpointer data)
+on_search_click(FBButton* button, gpointer data)
 {
   update_tab_id(data);
 
-  if (fb_sdk_webview_get_view() == 1)
+  if (CWidget.WebView.Visible(SELF) == true)
   { on_url_search(NULL, data); }
 }
 
 /* --------------------------------------------------------------------------- */
 
 static void
-on_url_history_back(GtkButton* button, gpointer data)
+on_url_history_back(FBButton* button, gpointer data)
 {
-  fb_sdk_webview_go_back_on_history();
+  if (CWidget.WebView.CanGoBack(SELF) == true)
+  { CWidget.WebView.BackHistory(SELF); }
 }
 
 static void
-on_url_history_forward(GtkButton* button, gpointer data)
+on_url_history_forward(FBButton* button, gpointer data)
 {
-  fb_sdk_webview_go_forward_on_history();
+  if (CWidget.WebView.CanGoForward(SELF) == true)
+  { CWidget.WebView.ForwardHistory(SELF); }
 }
 
 static void
-on_url_load(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
+on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
 {
+  char* button_label = NULL;
+
   switch (event)
   {
-    case WEBKIT_LOAD_STARTED: fb_sdk_webview_load_page(); break;
-    case WEBKIT_LOAD_FINISHED: gtk_button_set_label(GTK_BUTTON(FB.widget.reload), "↑↓"); break;
+    case WEBKIT_LOAD_STARTED: button_label = "X"; break;
+    case WEBKIT_LOAD_FINISHED: button_label = "↑↓"; break;
     default: break;
   }
+
+  CWidget.Button.SetLabel(FB.widget.reload, button_label);
 }
 
 static void
-on_url_reload(GtkButton* button, gpointer data)
+on_url_reload(FBButton* button, gpointer data)
 {
-  fb_sdk_webview_reload_page();
+  CWidget.WebView.Reload(SELF, button);
 }
 
 /* --------------------------------------------------------------------------- */
 
 static void
-close_tab(void)
-{
-  FB_SDK_WebViewReference* web_view_reference = fb_sdk_webview_get_reference();
-  if (tab[ID].web == web_view_reference)
-  {
-    control_web_view_reference(0);
-    fb_sdk_webview_set_reference(NULL);
-  }
-
-  tab[ID].ID = 0;
-  memset(tab[ID].title, '\0', sizeof(tab[ID].title));
-  memset(tab[ID].url, '\0', sizeof(tab[ID].url));
-
-  gtk_widget_destroy(GTK_WIDGET(tab[ID].web));
-  gtk_widget_destroy(tab[ID].button.close);
-  gtk_widget_destroy(tab[ID].button.tab);
-  gtk_widget_destroy(tab[ID].box.button);
-  TabPosition--;
-
-  tab[ID].garbage = 1;
-}
-
-static void
 set_tab_url(const char* url)
 {
-  gtk_entry_set_text(GTK_ENTRY(FB.widget.url), url);
+  CWidget.Entry.SetLabel(FB.widget.url, url);
 }
 
 static void
@@ -153,37 +138,53 @@ set_tab_title(const char* title)
     } break;
   }
 
-  gtk_button_set_label(GTK_BUTTON(tab[ID].button.tab), tab[ID].title);
+  CWidget.Button.SetLabel(tab[ID].button.tab, tab[ID].title);
 }
 
 static void
-on_tab_click(GtkButton* button, gpointer data)
+on_tab_click(FBButton* button, gpointer data)
 {
-  control_web_view_reference(0);
-
   update_tab_id(data);
+
+  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+
   set_tab_url(tab[ID].url);
-  fb_sdk_webview_set_reference(tab[ID].web);
+  CWidget.WebView.SetMaster(tab[ID].web);
 
-  control_web_view_reference(1);
+  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
 }
 
 static void
-on_tab_close(GtkButton* button, gpointer data)
+on_tab_close(FBButton* button, gpointer data)
 {
   update_tab_id(data);
-  close_tab();
 
-  FB_SDK_WebViewReference* web_view_reference = fb_sdk_webview_get_reference();
-  if (web_view_reference == NULL)
+  if (tab[ID].web == CWidget.WebView.GetMaster())
+  {
+    CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+    CWidget.WebView.SetMaster(NULL);
+  }
+
+  tab[ID].ID = 0;
+  memset(tab[ID].title, '\0', sizeof(tab[ID].title));
+  memset(tab[ID].url, '\0', sizeof(tab[ID].url));
+
+  CWidget.Destroy(GTK_WIDGET(tab[ID].web));
+  CWidget.Destroy(tab[ID].button.close);
+  CWidget.Destroy(tab[ID].button.tab);
+  CWidget.Destroy(tab[ID].box.button);
+  TabPosition--;
+
+  tab[ID].garbage = true;
+
+  if (CWidget.WebView.GetMaster() == NULL)
   {
     ID++;
     if (tab[ID].ID == 0)
     {
-      char i = 0;
-      for (i=tab_count; i>=0; i--)
+      int i = tab_count; for (; i>=0; i--)
       {
-        if (tab[i].garbage == 0)
+        if (tab[i].garbage == false)
         { ID = tab[i].ID; }
       }
     }
@@ -191,77 +192,74 @@ on_tab_close(GtkButton* button, gpointer data)
     if (ID < tab_count)
     {
       set_tab_url(tab[ID].url);
-      fb_sdk_webview_set_reference(tab[ID].web);
+      CWidget.WebView.SetMaster(tab[ID].web);
 
-      control_web_view_reference(1);
+      CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
     }
   }
 }
 
 static void
-update_tab_title(WebKitWebView* web, GParamSpec* pspec, gpointer data)
+update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
   update_tab_id(data);
 
-  FB_SDK_WebViewReference* web_view_reference = fb_sdk_webview_get_reference();
-  set_tab_title(webkit_web_view_get_title(web_view_reference));
+  set_tab_title(CWidget.WebView.GetTitle(web_view));
 }
 
 /* =========================================================================== */
 
 BrowserTabID
-fb_sdk_create_new_tab(GtkWidget* container)
+fb_sdk_create_new_tab(FBWidget* container)
 {
-  control_web_view_reference(0);
+  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
 
   BrowserTabID ID = tab[tab_count].ID = tab_count;
 
-  unsigned char countTabIncrease = 1;
+  bool countTabIncrease = true;
   if (ID > 0)
   {
-    BrowserTabID i = 0;
-    for (i=0; i<=tab_count; i++)
+    BrowserTabID i = 0; for (; i<=tab_count; i++)
     {
-      if (tab[i].garbage == 1)
-      { ID = i; tab[ID].ID = ID; tab[ID].garbage = 0; countTabIncrease = 0; break; }
+      if (tab[i].garbage == true)
+      { ID = i; tab[i].ID = i; tab[i].garbage = false; countTabIncrease = false; break; }
     }
   }
 
   sprintf(tab[ID].title, "New tab");
 
-  tab[ID].box.button = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_box_pack_start(GTK_BOX(container), tab[ID].box.button, FALSE, FALSE, 3);
+  tab[ID].box.button = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
+  tab[ID].button.tab = CWidget.Button.Create(tab[ID].title);
+  tab[ID].button.close = CWidget.Button.Create("X");
+  tab[ID].web = CWidget.WebView.Create();
 
-  tab[ID].button.tab = gtk_button_new_with_label(tab[ID].title);
-  gtk_box_pack_start(GTK_BOX(tab[ID].box.button), tab[ID].button.tab, FALSE, FALSE, 0);
-
-  tab[ID].button.close = gtk_button_new_with_label("X");
-  gtk_box_pack_start(GTK_BOX(tab[ID].box.button), tab[ID].button.close, FALSE, FALSE, 0);
-
-  gtk_box_reorder_child(GTK_BOX(container), tab[ID].box.button, TabPosition-1);
+  CWidget.Box.PositionStart(container, tab[ID].box.button, FALSE, FALSE, 3);
+  CWidget.Box.PositionStart(tab[ID].box.button, tab[ID].button.tab, FALSE, FALSE, 0);
+  CWidget.Box.PositionStart(tab[ID].box.button, tab[ID].button.close, FALSE, FALSE, 0);
+  CWidget.Box.PositionStart(FB.box.web, GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
+  CWidget.Box.Move(container, tab[ID].box.button, TabPosition-1);
   TabPosition++;
 
-  tab[ID].web = fb_sdk_webview_create_new();
-  gtk_box_pack_start(GTK_BOX(FB.box.main), GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
+  /* TODO: Fix `on_tab_click` bug where it is needed to double select a tab in order to switch. */
+  g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(tab[ID].ID));
 
-  g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(ID));
-  g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(ID));
-
-  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_url_load),            GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_url_load),            GINT_TO_POINTER(tab[ID].ID));
   g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_cookie_handle),       NULL);
-  g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(ID));
-  g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(ID));
+  g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(tab[ID].ID));
 
-  g_signal_connect(FB.widget.url,         "changed",        G_CALLBACK(on_url_change),          GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.url,         "activate",       G_CALLBACK(on_url_search),          GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.url,         "changed",        G_CALLBACK(on_url_change),          GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(FB.widget.url,         "activate",       G_CALLBACK(on_url_search),          GINT_TO_POINTER(tab[ID].ID));
 
-  g_signal_connect(FB.widget.back,        "clicked",        G_CALLBACK(on_url_history_back),    GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.forward,     "clicked",        G_CALLBACK(on_url_history_forward), GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.reload,      "clicked",        G_CALLBACK(on_url_reload),          GINT_TO_POINTER(ID));
-  g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(ID));
+  g_signal_connect(FB.widget.back,        "clicked",        G_CALLBACK(on_url_history_back),    GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(FB.widget.forward,     "clicked",        G_CALLBACK(on_url_history_forward), GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(FB.widget.reload,      "clicked",        G_CALLBACK(on_url_reload),          GINT_TO_POINTER(tab[ID].ID));
+  g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(tab[ID].ID));
 
   on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, NULL);
-  fb_sdk_webview_set_reference(tab[ID].web);
+  CWidget.WebView.SetMaster(tab[ID].web);
 
   char *html_file = load_html_file(ROOT.assets.launcher);
   if (html_file == NULL)
@@ -272,16 +270,16 @@ fb_sdk_create_new_tab(GtkWidget* container)
   }
   else
   {
-    webkit_web_view_load_html(tab[ID].web, html_file, NULL);
+    CWidget.WebView.LoadHTML(tab[ID].web, html_file, NULL);
     free(html_file);
   }
 
-  if (countTabIncrease == 1)
+  if (countTabIncrease == true)
   {
     tab_count++;
   }
 
-  control_web_view_reference(1);
+  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
 
   return ID;
 }

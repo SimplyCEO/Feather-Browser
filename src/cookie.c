@@ -1,4 +1,7 @@
+#include "widgets.h"
+
 #include "browser.h"
+#include "cookie.h"
 
 #if defined(DEBUG)
   static void
@@ -20,11 +23,11 @@
 #endif
 
 void
-on_cookie_handle(WebKitWebView* web, WebKitLoadEvent event, gpointer data)
+on_cookie_handle(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
 {
   if (event == WEBKIT_LOAD_FINISHED)
   {
-    FB.data.cookie = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(web));
+    FB.data.cookie = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(web_view));
 
     webkit_cookie_manager_set_persistent_storage
     (

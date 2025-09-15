@@ -11,25 +11,21 @@ typedef struct Browser
   {
     WebKitCookieManager* cookie;
   } data;
-  struct BrowserWindow
-  {
-    GtkWidget* def;
-    GdkPixbuf* icon;
-  } window;
+  FBWidget* window;
   struct BrowserContainer
   {
-    GtkWidget* main;
-    GtkWidget* tool;
-    GtkWidget* tab;
-    GtkWidget* web;
+    FBWidget* main;
+    FBWidget* tool;
+    FBWidget* tab;
+    FBWidget* web;
   } box;
   struct BrowserWidget
   {
-    GtkWidget* back;
-    GtkWidget* forward;
-    GtkWidget* reload;
-    GtkWidget* url;
-    GtkWidget* search;
+    FBWidget* back;
+    FBWidget* forward;
+    FBWidget* reload;
+    FBWidget* url;
+    FBWidget* search;
   } widget;
 } Browser;
 

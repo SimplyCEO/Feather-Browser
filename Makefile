@@ -58,8 +58,8 @@ PWD           := $(shell pwd | sed 's/ /\\ /g')
 OBJ_DIR       := $(PWD)/.obj
 SRC_DIR       := $(PWD)/src
 BIN_DIR       := $(PWD)/bin
-DIRS          := bin .obj
-HEADERS       := -I./src
+DIRS          := bin .obj .obj/widgets
+HEADERS       := -I./src -I./src/widgets
 LIBRARIES     := $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
 
 ifndef MINGW_CHOST
