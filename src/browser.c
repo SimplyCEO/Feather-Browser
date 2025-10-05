@@ -57,37 +57,43 @@ setup_browser(int argc, char** argv)
 
   setup_directory();
 
+  FBWidgetsBoxClass       Box       = fb_widgets_get_box_class();
+  FBWidgetsButtonClass    Button    = fb_widgets_get_button_class();
+  FBWidgetsContainerClass Container = fb_widgets_get_container_class();
+  FBWidgetsEntryClass     Entry     = fb_widgets_get_entry_class();
+  FBWidgetsWindowClass    Window    = fb_widgets_get_window_class();
+
   /* Browser main layout */
 
-  FB.window = CWidget.Window.Create(ROOT.assets.icon, "Feather Browser", 800, 600);
-  FB.box.main = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_VERTICAL, 0);
-  CWidget.Container.Add(FB.window, FB.box.main);
+  FB.window = Window.Create(ROOT.assets.icon, "Feather Browser", 800, 600);
+  FB.box.main = Box.Create((FBOrientation)BOX_ORIENTATION_VERTICAL, 0);
+  Container.Add(FB.window, FB.box.main);
 
   /* Organised layout */
 
-  FB.box.tool = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
-  FB.box.tab = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
-  FB.box.web = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
+  FB.box.tool = Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
+  FB.box.tab = Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
+  FB.box.web = Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
 
-  CWidget.Box.PositionStart(FB.box.main, FB.box.tool, FALSE, FALSE, 3);
-  CWidget.Box.PositionStart(FB.box.main, FB.box.tab, FALSE, FALSE, 3);
-  CWidget.Box.PositionEnd(FB.box.main, FB.box.web, TRUE, TRUE, 0);
+  Box.PositionStart(FB.box.main, FB.box.tool, FALSE, FALSE, 3);
+  Box.PositionStart(FB.box.main, FB.box.tab, FALSE, FALSE, 3);
+  Box.PositionEnd(FB.box.main, FB.box.web, TRUE, TRUE, 0);
 
   /* Buttons / Entries / WebView */
 
-  FB.widget.back = CWidget.Button.Create("<");
-  FB.widget.forward = CWidget.Button.Create(">");
-  FB.widget.reload = CWidget.Button.Create("↑↓");
-  FB.widget.url = CWidget.Entry.Create("Type the URL link here...");
-  FB.widget.search = CWidget.Button.Create("→");
-  FBWidget* newtab = CWidget.Button.Create("+");
+  FB.widget.back = Button.Create("<");
+  FB.widget.forward = Button.Create(">");
+  FB.widget.reload = Button.Create("↑↓");
+  FB.widget.url = Entry.Create("Type the URL link here...");
+  FB.widget.search = Button.Create("→");
+  FBWidget* newtab = Button.Create("+");
 
-  CWidget.Box.PositionStart(FB.box.tool, FB.widget.back, FALSE, FALSE, 1);
-  CWidget.Box.PositionStart(FB.box.tool, FB.widget.forward, FALSE, FALSE, 1);
-  CWidget.Box.PositionStart(FB.box.tool, FB.widget.reload, FALSE, FALSE, 1);
-  CWidget.Box.PositionStart(FB.box.tool, FB.widget.url, TRUE, TRUE, 1);
-  CWidget.Box.PositionEnd(FB.box.tool, FB.widget.search, FALSE, FALSE, 1);
-  CWidget.Box.PositionStart(FB.box.tab, newtab, FALSE, FALSE, 3);
+  Box.PositionStart(FB.box.tool, FB.widget.back, FALSE, FALSE, 1);
+  Box.PositionStart(FB.box.tool, FB.widget.forward, FALSE, FALSE, 1);
+  Box.PositionStart(FB.box.tool, FB.widget.reload, FALSE, FALSE, 1);
+  Box.PositionStart(FB.box.tool, FB.widget.url, TRUE, TRUE, 1);
+  Box.PositionEnd(FB.box.tool, FB.widget.search, FALSE, FALSE, 1);
+  Box.PositionStart(FB.box.tab, newtab, FALSE, FALSE, 3);
   g_signal_connect(newtab, "clicked", G_CALLBACK(on_new_tab), FB.box.tab);
 
   fb_sdk_create_new_tab(FB.box.tab);

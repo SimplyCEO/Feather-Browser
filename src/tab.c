@@ -25,8 +25,11 @@ update_tab_id(gpointer data)
 static void
 update_tab_url(char* url, FBWidget* entry)
 {
-  if (CWidget.WebView.Visible(SELF) == true)
-  { strcpy(url, CWidget.Entry.GetLabel(entry)); }
+  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
+  if (WebView.Visible(SELF) == true)
+  { strcpy(url, Entry.GetLabel(entry)); }
 }
 
 /* --------------------------------------------------------------------------- */
@@ -42,10 +45,13 @@ on_url_change(FBWidget* widget, gpointer data)
 static void
 on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
+  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  if (CWidget.WebView.Visible(web_view) == true)
-  { CWidget.Entry.SetLabel(FB.widget.url, CWidget.WebView.GetURI(web_view)); }
+  if (WebView.Visible(web_view) == true)
+  { Entry.SetLabel(FB.widget.url, WebView.GetURI(web_view)); }
 
   update_tab_url(tab[ID].url, FB.widget.url);
 }
@@ -53,17 +59,21 @@ on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 static void
 on_url_search(FBWidget* widget, gpointer data)
 {
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  CWidget.WebView.Search(SELF, tab[ID].url);
+  WebView.Search(SELF, tab[ID].url);
 }
 
 static void
 on_search_click(FBButton* button, gpointer data)
 {
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  if (CWidget.WebView.Visible(SELF) == true)
+  if (WebView.Visible(SELF) == true)
   { on_url_search(NULL, data); }
 }
 
@@ -72,20 +82,25 @@ on_search_click(FBButton* button, gpointer data)
 static void
 on_url_history_back(FBButton* button, gpointer data)
 {
-  if (CWidget.WebView.CanGoBack(SELF) == true)
-  { CWidget.WebView.BackHistory(SELF); }
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
+  if (WebView.CanGoBack(SELF) == true)
+  { WebView.BackHistory(SELF); }
 }
 
 static void
 on_url_history_forward(FBButton* button, gpointer data)
 {
-  if (CWidget.WebView.CanGoForward(SELF) == true)
-  { CWidget.WebView.ForwardHistory(SELF); }
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
+  if (WebView.CanGoForward(SELF) == true)
+  { WebView.ForwardHistory(SELF); }
 }
 
 static void
 on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
 {
+  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
   char* button_label = NULL;
 
   switch (event)
@@ -95,13 +110,15 @@ on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
     default: break;
   }
 
-  CWidget.Button.SetLabel(FB.widget.reload, button_label);
+  Button.SetLabel(FB.widget.reload, button_label);
 }
 
 static void
 on_url_reload(FBButton* button, gpointer data)
 {
-  CWidget.WebView.Reload(SELF, button);
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
+  WebView.Reload(SELF, button);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -109,7 +126,9 @@ on_url_reload(FBButton* button, gpointer data)
 static void
 set_tab_url(const char* url)
 {
-  CWidget.Entry.SetLabel(FB.widget.url, url);
+  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
+
+  Entry.SetLabel(FB.widget.url, url);
 }
 
 static void
@@ -118,6 +137,8 @@ set_tab_title(const char* title)
   if (title == NULL) { return; }
   int titlelen = strlen(title);
   if (titlelen < 1) { return; }
+
+  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
 
   strncpy(tab[ID].title, title, 23);
   tab[ID].title[23] = '\0';
@@ -138,46 +159,51 @@ set_tab_title(const char* title)
     } break;
   }
 
-  CWidget.Button.SetLabel(tab[ID].button.tab, tab[ID].title);
+  Button.SetLabel(tab[ID].button.tab, tab[ID].title);
 }
 
 static void
 on_tab_click(FBButton* button, gpointer data)
 {
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
 
   set_tab_url(tab[ID].url);
-  CWidget.WebView.SetMaster(tab[ID].web);
+  WebView.SetMaster(tab[ID].web);
 
-  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
+  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
 }
 
 static void
 on_tab_close(FBButton* button, gpointer data)
 {
+  FBWidgetsClass        Widget  = fb_widgets_get();
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  if (tab[ID].web == CWidget.WebView.GetMaster())
+  if (tab[ID].web == WebView.GetMaster())
   {
-    CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
-    CWidget.WebView.SetMaster(NULL);
+    WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+    WebView.SetMaster(NULL);
   }
 
   tab[ID].ID = 0;
   memset(tab[ID].title, '\0', sizeof(tab[ID].title));
   memset(tab[ID].url, '\0', sizeof(tab[ID].url));
 
-  CWidget.Destroy(GTK_WIDGET(tab[ID].web));
-  CWidget.Destroy(tab[ID].button.close);
-  CWidget.Destroy(tab[ID].button.tab);
-  CWidget.Destroy(tab[ID].box.button);
+  Widget.Destroy(GTK_WIDGET(tab[ID].web));
+  Widget.Destroy(tab[ID].button.close);
+  Widget.Destroy(tab[ID].button.tab);
+  Widget.Destroy(tab[ID].box.button);
   TabPosition--;
 
   tab[ID].garbage = true;
 
-  if (CWidget.WebView.GetMaster() == NULL)
+  if (WebView.GetMaster() == NULL)
   {
     ID++;
     if (tab[ID].ID == 0)
@@ -192,9 +218,9 @@ on_tab_close(FBButton* button, gpointer data)
     if (ID < tab_count)
     {
       set_tab_url(tab[ID].url);
-      CWidget.WebView.SetMaster(tab[ID].web);
+      WebView.SetMaster(tab[ID].web);
 
-      CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
+      WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
     }
   }
 }
@@ -202,9 +228,11 @@ on_tab_close(FBButton* button, gpointer data)
 static void
 update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
   update_tab_id(data);
 
-  set_tab_title(CWidget.WebView.GetTitle(web_view));
+  set_tab_title(WebView.GetTitle(web_view));
 }
 
 /* =========================================================================== */
@@ -212,7 +240,11 @@ update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 BrowserTabID
 fb_sdk_create_new_tab(FBWidget* container)
 {
-  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+  FBWidgetsBoxClass     Box     = fb_widgets_get_box_class();
+  FBWidgetsButtonClass  Button  = fb_widgets_get_button_class();
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
+
+  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
 
   BrowserTabID ID = tab[tab_count].ID = tab_count;
 
@@ -228,16 +260,16 @@ fb_sdk_create_new_tab(FBWidget* container)
 
   sprintf(tab[ID].title, "New tab");
 
-  tab[ID].box.button = CWidget.Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
-  tab[ID].button.tab = CWidget.Button.Create(tab[ID].title);
-  tab[ID].button.close = CWidget.Button.Create("X");
-  tab[ID].web = CWidget.WebView.Create();
+  tab[ID].box.button = Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
+  tab[ID].button.tab = Button.Create(tab[ID].title);
+  tab[ID].button.close = Button.Create("X");
+  tab[ID].web = WebView.Create();
 
-  CWidget.Box.PositionStart(container, tab[ID].box.button, FALSE, FALSE, 3);
-  CWidget.Box.PositionStart(tab[ID].box.button, tab[ID].button.tab, FALSE, FALSE, 0);
-  CWidget.Box.PositionStart(tab[ID].box.button, tab[ID].button.close, FALSE, FALSE, 0);
-  CWidget.Box.PositionStart(FB.box.web, GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
-  CWidget.Box.Move(container, tab[ID].box.button, TabPosition-1);
+  Box.PositionStart(container, tab[ID].box.button, FALSE, FALSE, 3);
+  Box.PositionStart(tab[ID].box.button, tab[ID].button.tab, FALSE, FALSE, 0);
+  Box.PositionStart(tab[ID].box.button, tab[ID].button.close, FALSE, FALSE, 0);
+  Box.PositionStart(FB.box.web, GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
+  Box.Move(container, tab[ID].box.button, TabPosition-1);
   TabPosition++;
 
   /* TODO: Fix `on_tab_click` bug where it is needed to double select a tab in order to switch. */
@@ -259,7 +291,7 @@ fb_sdk_create_new_tab(FBWidget* container)
   g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(tab[ID].ID));
 
   on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, NULL);
-  CWidget.WebView.SetMaster(tab[ID].web);
+  WebView.SetMaster(tab[ID].web);
 
   char *html_file = load_html_file(ROOT.assets.launcher);
   if (html_file == NULL)
@@ -270,7 +302,7 @@ fb_sdk_create_new_tab(FBWidget* container)
   }
   else
   {
-    CWidget.WebView.LoadHTML(tab[ID].web, html_file, NULL);
+    WebView.LoadHTML(tab[ID].web, html_file, NULL);
     free(html_file);
   }
 
@@ -279,7 +311,7 @@ fb_sdk_create_new_tab(FBWidget* container)
     tab_count++;
   }
 
-  CWidget.WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
+  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
 
   return ID;
 }

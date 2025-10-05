@@ -152,19 +152,20 @@ void
 _WC_WebView_Stop(FBWebView* web_view)
 {
   FBWebView* ref_web_view = WebViewReference(web_view);
-  if (CWidget.WebView.Loading(ref_web_view) == true)
+  if (_WC_WebView_Loading(ref_web_view) == true)
   { webkit_web_view_stop_loading(ref_web_view); }
 }
 
 void
 _WC_WebView_Reload(FBWebView* web_view, FBButton* button)
 {
+  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
   FBWebView* ref_web_view = WebViewReference(web_view);
 
-  if (CWidget.Button.GetLabel(GTK_WIDGET(button)) != NULL)
+  if (Button.GetLabel(GTK_WIDGET(button)) != NULL)
   { webkit_web_view_reload(ref_web_view); return; }
 
   _WC_WebView_Stop(ref_web_view);
-  CWidget.Button.SetLabel(GTK_WIDGET(button), "↑↓");
+  Button.SetLabel(GTK_WIDGET(button), "↑↓");
 }
 
