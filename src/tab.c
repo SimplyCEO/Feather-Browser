@@ -127,8 +127,15 @@ static void
 set_tab_url(const char* url)
 {
   FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
+  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
 
-  Entry.SetLabel(FB.widget.url, url);
+  if (url != NULL)
+  {
+    Entry.SetLabel(FB.widget.url, url);
+    return;
+  }
+
+  Entry.SetLabel(FB.widget.url, WebView.GetURI(SELF));
 }
 
 static void
@@ -171,8 +178,8 @@ on_tab_click(FBButton* button, gpointer data)
 
   WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
 
-  set_tab_url(tab[ID].url);
   WebView.SetMaster(tab[ID].web);
+  set_tab_url(NULL);
 
   WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
 }
