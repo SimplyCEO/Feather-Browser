@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
 Name=Feather Browser
-Exec=feather_browser
-Icon=/usr/share/feather_browser/assets/icon.png
+Exec=feather-browser
+Icon=/usr/share/feather-browser/assets/icon.png
 Terminal=false
 Type=Application
 Categories=Network;

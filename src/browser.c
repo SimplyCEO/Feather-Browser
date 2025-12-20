@@ -21,10 +21,10 @@ setup_directory(void)
   const char* home = getenv("HOME");
   struct stat s = {0};
 
-  strcpy(ROOT.def, "/usr/share/feather_browser");
+  strcpy(ROOT.def, "/usr/share/feather-browser");
   sprintf(ROOT.assets.def, "%s/assets", ROOT.def);
 
-  sprintf(HOME.def, "%s/.local/share/feather_browser", home);
+  sprintf(HOME.def, "%s/.local/share/feather-browser", home);
   sprintf(HOME.assets.def, "%s/assets", HOME.def);
 
   if (stat(HOME.def, &s) == -1)

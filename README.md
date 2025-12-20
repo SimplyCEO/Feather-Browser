@@ -11,9 +11,9 @@ To install it is really simple. Clone, enter, make, run, rage.
 git clone https://gitlab.com/SimplyCEO/Feather-Browser.git
 cd Feather-Browser
 make BUILD_TYPE=Release
-bin/feather_browser
+bin/feather-browser
 ```
-Or just open `feather_browser` located inside `bin` folder.
+Or just open `feather-browser` located inside `bin` folder.
 
 Installation
 ------------
@@ -31,26 +31,26 @@ which will be assumed it is under the `HOME` directory.
 Exporting the `PATH` environment variable is easy, just need a few steps:
 ```shell
 export PATH="${HOME}/.local/bin:${PATH}"
-cp bin/feather_browser "${HOME}/.local/bin"
+cp bin/feather-browser "${HOME}/.local/bin"
 ```
 
 Copy the contents of the `assets` folder to the local browser folder:
 ```shell
-mkdir -p "${HOME}/.local/share/feather_browser"
-cp -r ./assets "${HOME}/.local/share/feather_browser"
+mkdir -p "${HOME}/.local/share/feather-browser"
+cp -r ./assets "${HOME}/.local/share/feather-browser"
 ```
 
 Additionaly, the desktop file for Linux devices can be accessed through the menu and/or desktop:
 ```shell
-cp assets/icon.png "${HOME}/.icons/feather_browser_icon.png"
-cp Feather_Browser.desktop "${HOME}/.local/share/applications"
-cp Feather_Browser.desktop "${HOME}/Desktop"
+cp assets/icon.png "${HOME}/.icons/feather-browser_icon.png"
+cp feather-browser.desktop "${HOME}/.local/share/applications"
+cp feather-browser.desktop "${HOME}/Desktop"
 ```
 
 Remember to add the binary path to the desktop file:
 ```desktop
 Path=/home/username/.local/bin
-Exec=./feather_browser
+Exec=./feather-browser
 Icon=./assets/icon.png
 ```
 
@@ -60,11 +60,11 @@ Gallery
 -------
 
 <p align="left">
-  <a href="/.media/screenshots/feather_browser_0.png">
-    <img src="/.media/screenshots/lowres_feather_browser_0.png" width="192" title="Feather Browser Technologic">
+  <a href="/.media/screenshots/feather-browser_0.png">
+    <img src="/.media/screenshots/lowres_feather-browser_0.png" width="192" title="Feather Browser Technologic">
   </a>
-  <a href="/.media/screenshots/feather_browser_1.png">
-    <img src="/.media/screenshots/lowres_feather_browser_1.png" width="192" title="Feather Browser Repository">
+  <a href="/.media/screenshots/feather-browser_1.png">
+    <img src="/.media/screenshots/lowres_feather-browser_1.png" width="192" title="Feather Browser Repository">
   </a>
 </p>
 

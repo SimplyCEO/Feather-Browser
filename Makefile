@@ -68,7 +68,7 @@ else
 	LIBRARIES   +=
 endif
 
-_TARGETS      := feather_browser
+_TARGETS      := feather-browser
 _SOURCES      := $(shell find $(SRC_DIR) -name "*.c")
 _SOURCES      := $(patsubst $(SRC_DIR)/%,%,$(_SOURCES))
 _OBJECTS      := $(patsubst %.c,%.o,$(_SOURCES))
@@ -96,12 +96,12 @@ $(DIRS):
 	@mkdir -p $(PWD)/$@
 
 install:
-	@mkdir -p $(HOME)/.local/share/feather_browser/assets/
-	@mkdir -p $(INSTALL_PREFIX)/share/feather_browser/assets/
-	@install -m 755 bin/feather_browser $(INSTALL_PREFIX)/bin/
-	@install -m 644 assets/icon.png $(INSTALL_PREFIX)/share/feather_browser/assets/
-	@install -m 644 Feather_Browser.desktop $(INSTALL_PREFIX)/share/applications/
-	@find assets/launcher -type f -exec install -Dm 755 "{}" "$(INSTALL_PREFIX)/share/feather_browser/{}" \;
+	@mkdir -p $(HOME)/.local/share/feather-browser/assets/
+	@mkdir -p $(INSTALL_PREFIX)/share/feather-browser/assets/
+	@install -m 755 bin/feather-browser $(INSTALL_PREFIX)/bin/
+	@install -m 644 assets/icon.png $(INSTALL_PREFIX)/share/feather-browser/assets/
+	@install -m 644 feather-browser.desktop $(INSTALL_PREFIX)/share/applications/
+	@find assets/launcher -type f -exec install -Dm 755 "{}" "$(INSTALL_PREFIX)/share/feather-browser/{}" \;
 
 clean:
 	@rm -rv $(BIN_DIR)/$(_TARGETS) 2>/dev/null || true
