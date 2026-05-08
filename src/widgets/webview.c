@@ -159,7 +159,6 @@ _WC_WebView_Stop(FBWebView* web_view)
 void
 _WC_WebView_Reload(FBWebView* web_view, FBButton* button)
 {
-  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
   FBWebView* ref_web_view = WebViewReference(web_view);
 
   if (Button.GetLabel(GTK_WIDGET(button)) != NULL)

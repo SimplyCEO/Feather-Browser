@@ -12,28 +12,19 @@ typedef GdkPixbuf FBIcon;
 typedef WebKitWebView FBWebView;
 typedef GtkWidget FBWidget;
 
-typedef struct FBWidgetsBoxClass FBWidgetsBoxClass;
-typedef struct FBWidgetsButtonClass FBWidgetsButtonClass;
-typedef struct FBWidgetsContainerClass FBWidgetsContainerClass;
-typedef struct FBWidgetsEntryClass FBWidgetsEntryClass;
-typedef struct FBWidgetsWebViewClass FBWidgetsWebViewClass;
-typedef struct FBWidgetsWindowClass FBWidgetsWindowClass;
-typedef struct FBWidgetsClass FBWidgetsClass;
-
-typedef enum FBOrientation FBOrientation;
 typedef enum FBWebViewMode FBWebViewMode;
 
-enum FBOrientation
+typedef enum FBOrientation
 {
   BOX_ORIENTATION_HORIZONTAL,
   BOX_ORIENTATION_VERTICAL
-};
+} FBOrientation;
 
-enum FBWebViewMode
+typedef enum FBWebViewMode
 {
   WEBVIEW_HIDE,
   WEBVIEW_SHOW
-};
+} FBWebViewMode;
 
 /* BOX */
 FBWidget*   _WC_Box_Create(FBOrientation orientation, int32_t padding);
@@ -83,41 +74,41 @@ void        _WC_WebView_Reload(FBWebView* web_view, FBButton* button);
 /* WINDOW */
 FBWidget*   _WC_Window_Create(const char* w_icon_path, const char* title, size_t scale_x, size_t scale_y);
 
-struct FBWidgetsBoxClass
+typedef struct FBWidgetsBoxClass
 {
   FBWidget*   (*Create)(FBOrientation, int32_t);
   void        (*Move)(FBWidget*, FBWidget*, int32_t);
   void        (*PositionStart)(FBWidget*, FBWidget*, bool, bool, uint32_t);
   void        (*PositionEnd)(FBWidget*, FBWidget*, bool, bool, uint32_t);
-};
+} FBWidgetsBoxClass;
 
-struct FBWidgetsButtonClass
+typedef struct FBWidgetsButtonClass
 {
   FBWidget*   (*Create)(const char*);
   FBButton*   (*GetMaster)(void);
   void        (*SetMaster)(FBWidget*);
   const char* (*GetLabel)(FBWidget*);
   void        (*SetLabel)(FBWidget*, const char*);
-};
+} FBWidgetsButtonClass;
 
-struct FBWidgetsContainerClass
+typedef struct FBWidgetsContainerClass
 {
   void        (*Add)(FBWidget*, FBWidget*);
   void        (*Remove)(FBWidget*, FBWidget*);
   int32_t     (*GetBorderWidth)(FBWidget*);
   void        (*SetBorderWidth)(FBWidget*, int32_t);
-};
+} FBWidgetsContainerClass;
 
-struct FBWidgetsEntryClass
+typedef struct FBWidgetsEntryClass
 {
   FBWidget*   (*Create)(const char*);
   FBEntry*    (*GetMaster)(void);
   void        (*SetMaster)(FBWidget*);
   const char* (*GetLabel)(FBWidget*);
   void        (*SetLabel)(FBWidget*, const char*);
-};
+} FBWidgetsEntryClass;
 
-struct FBWidgetsWebViewClass
+typedef struct FBWidgetsWebViewClass
 {
   FBWebView*  (*Create)(void);
   FBWebView*  (*GetMaster)(void);
@@ -136,25 +127,27 @@ struct FBWidgetsWebViewClass
   void        (*ForwardHistory)(FBWebView*);
   void        (*Stop)(FBWebView*);
   void        (*Reload)(FBWebView*, FBButton*);
-};
+} FBWidgetsWebViewClass;
 
-struct FBWidgetsWindowClass
+typedef struct FBWidgetsWindowClass
 {
   FBWidget*   (*Create)(const char*, const char*, size_t, size_t);
-};
+} FBWidgetsWindowClass;
 
-struct FBWidgetsClass
+typedef struct FBWidgetsClass
 {
   void (*Destroy)(FBWidget*);
-};
+} FBWidgetsClass;
 
-const FBWidgetsClass          fb_widgets_get(void);
-const FBWidgetsBoxClass       fb_widgets_get_box_class(void);
-const FBWidgetsButtonClass    fb_widgets_get_button_class(void);
-const FBWidgetsContainerClass fb_widgets_get_container_class(void);
-const FBWidgetsEntryClass     fb_widgets_get_entry_class(void);
-const FBWidgetsWebViewClass   fb_widgets_get_web_view_class(void);
-const FBWidgetsWindowClass    fb_widgets_get_window_class(void);
+extern FBWidgetsClass          Widget;
+extern FBWidgetsBoxClass       Box;
+extern FBWidgetsButtonClass    Button;
+extern FBWidgetsContainerClass Container;
+extern FBWidgetsEntryClass     Entry;
+extern FBWidgetsWebViewClass   WebView;
+extern FBWidgetsWindowClass    Window;
+
+void setup_all_widgets(void);
 
 #endif
 

@@ -25,9 +25,6 @@ update_tab_id(gpointer data)
 static void
 update_tab_url(char* url, FBWidget* entry)
 {
-  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   if (WebView.Visible(SELF) == true)
   { strcpy(url, Entry.GetLabel(entry)); }
 }
@@ -45,9 +42,6 @@ on_url_change(FBWidget* widget, gpointer data)
 static void
 on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
-  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   if (WebView.Visible(web_view) == true)
@@ -59,8 +53,6 @@ on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 static void
 on_url_search(FBWidget* widget, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   WebView.Search(SELF, tab[ID].url);
@@ -69,8 +61,6 @@ on_url_search(FBWidget* widget, gpointer data)
 static void
 on_search_click(FBButton* button, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   if (WebView.Visible(SELF) == true)
@@ -82,8 +72,6 @@ on_search_click(FBButton* button, gpointer data)
 static void
 on_url_history_back(FBButton* button, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   if (WebView.CanGoBack(SELF) == true)
   { WebView.BackHistory(SELF); }
 }
@@ -91,8 +79,6 @@ on_url_history_back(FBButton* button, gpointer data)
 static void
 on_url_history_forward(FBButton* button, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   if (WebView.CanGoForward(SELF) == true)
   { WebView.ForwardHistory(SELF); }
 }
@@ -100,7 +86,6 @@ on_url_history_forward(FBButton* button, gpointer data)
 static void
 on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
 {
-  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
   char* button_label = NULL;
 
   switch (event)
@@ -116,8 +101,6 @@ on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
 static void
 on_url_reload(FBButton* button, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   WebView.Reload(SELF, button);
 }
 
@@ -126,9 +109,6 @@ on_url_reload(FBButton* button, gpointer data)
 static void
 set_tab_url(const char* url)
 {
-  FBWidgetsEntryClass Entry = fb_widgets_get_entry_class();
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   if (url != NULL)
   {
     Entry.SetLabel(FB.widget.url, url);
@@ -144,8 +124,6 @@ set_tab_title(const char* title)
   if (title == NULL) { return; }
   int titlelen = strlen(title);
   if (titlelen < 1) { return; }
-
-  FBWidgetsButtonClass Button = fb_widgets_get_button_class();
 
   strncpy(tab[ID].title, title, 23);
   tab[ID].title[23] = '\0';
@@ -172,8 +150,6 @@ set_tab_title(const char* title)
 static void
 on_tab_click(FBButton* button, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
@@ -187,9 +163,6 @@ on_tab_click(FBButton* button, gpointer data)
 static void
 on_tab_close(FBButton* button, gpointer data)
 {
-  FBWidgetsClass        Widget  = fb_widgets_get();
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   if (tab[ID].web == WebView.GetMaster())
@@ -235,8 +208,6 @@ on_tab_close(FBButton* button, gpointer data)
 static void
 update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 {
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   update_tab_id(data);
 
   set_tab_title(WebView.GetTitle(web_view));
@@ -247,10 +218,6 @@ update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
 BrowserTabID
 fb_sdk_create_new_tab(FBWidget* container)
 {
-  FBWidgetsBoxClass     Box     = fb_widgets_get_box_class();
-  FBWidgetsButtonClass  Button  = fb_widgets_get_button_class();
-  FBWidgetsWebViewClass WebView = fb_widgets_get_web_view_class();
-
   WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
 
   BrowserTabID ID = tab[tab_count].ID = tab_count;

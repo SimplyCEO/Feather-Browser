@@ -57,12 +57,6 @@ setup_browser(int argc, char** argv)
 
   setup_directory();
 
-  FBWidgetsBoxClass       Box       = fb_widgets_get_box_class();
-  FBWidgetsButtonClass    Button    = fb_widgets_get_button_class();
-  FBWidgetsContainerClass Container = fb_widgets_get_container_class();
-  FBWidgetsEntryClass     Entry     = fb_widgets_get_entry_class();
-  FBWidgetsWindowClass    Window    = fb_widgets_get_window_class();
-
   /* Browser main layout */
 
   FB.window = Window.Create(ROOT.assets.icon, "Feather Browser", 800, 600);
