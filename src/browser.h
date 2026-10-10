@@ -1,49 +1,48 @@
 #ifndef BROWSER_HEADER
 #define BROWSER_HEADER
 
-#include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
+#include <gtke/webview.h>
 #include <libsoup/soup.h>
+
+typedef struct BrowserAssetsDirectory
+{
+  char master[1024];
+  char assets[1024];
+  char cookies[1024];
+  char icon[1024];
+  char launcher[1024];
+} BrowserAssetsDirectory;
 
 typedef struct Browser
 {
-  struct BrowserData
+  struct BrowserDirectory
   {
-    WebKitCookieManager* cookie;
-  } data;
-  FBWidget* window;
+    BrowserAssetsDirectory root;
+    BrowserAssetsDirectory user;
+  } path;
+
+  struct BrowserData { GtkECookieManager* cookie; } data;
+
+  GtkEWidget* window;
   struct BrowserContainer
   {
-    FBWidget* main;
-    FBWidget* tool;
-    FBWidget* tab;
-    FBWidget* web;
-  } box;
+    GtkEWidget* master;
+    GtkEWidget* tool;
+    GtkEWidget* tab;
+    GtkEWidget* web;
+  } container;
   struct BrowserWidget
   {
-    FBWidget* back;
-    FBWidget* forward;
-    FBWidget* reload;
-    FBWidget* url;
-    FBWidget* search;
+    GtkEWidget* back;
+    GtkEWidget* forward;
+    GtkEWidget* reload;
+    GtkEWidget* url;
+    GtkEWidget* search;
+    GtkEWidget* tab;
   } widget;
 } Browser;
 
-typedef struct BrowserDirectory
-{
-  char def[1024];
-  struct BrowserAssetsDirectory
-  {
-    char def[1024];
-    char cookies[1024];
-    char icon[1024];
-    char launcher[1024];
-  } assets;
-} BrowserDirectory;
-
-extern Browser          FB;
-extern BrowserDirectory HOME;
-extern BrowserDirectory ROOT;
+extern Browser feather;
 
 void setup_browser(int argc, char** argv);
 void run_browser(void);

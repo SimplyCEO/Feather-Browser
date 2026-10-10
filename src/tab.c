@@ -1,91 +1,203 @@
-#include <gtk/gtk.h>
+#define __GTKE_WEBVIEW_USE_COOKIES__
+
+#include <gtke/container.h>
+#include <gtke/entry.h>
+#include <gtke/page.h>
+#include <gtke/text.h>
+#include <gtke/webview.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "widgets.h"
 #include "tools.h"
 #include "browser.h"
-#include "cookie.h"
 #include "tab.h"
 
-BrowserTab tab[16] = {0};
-BrowserTabID ID = 0, TabPosition = 1;
-BrowserTabID tab_count = 0;
+BrowserTab**   tab     = NULL;
+BrowserTab*    tab_ptr = NULL;
+BrowserTabSize tab_max = 0;
+
+/* =========================================================================== */
+
+static BrowserTab*
+browser_tab_init(BrowserTabSize index)
+{
+  BrowserTab* object = NULL;
+
+  if (index < 0)
+  {
+    object = (BrowserTab*)malloc(sizeof(BrowserTab));
+
+    object->container.title[0] = 0;
+    object->container.url[0] = 0;
+
+    object->widget.webview = NULL;
+    object->container.button = NULL;
+    object->container.webview = NULL;
+    object->widget.title = NULL;
+    object->widget.close = NULL;
+
+    return object;
+  }
+
+  BrowserTabSize i = 0;
+  for (; tab[i] != NULL; ++i) {}
+  --i;
+
+  if (index > i)
+  {
+    index = i;
+  }
+
+  object = tab[index];
+
+  strcpy(object->container.title, "New Tab");
+  strcpy(object->container.url, "http://html.duckduckgo.com/html/");
+
+  if (object->active != BROWSER_TAB_ACTIVE)
+  {
+    object->widget.webview     = gtke_webview_new(feather.path.user.cookies);
+    object->container.button   = gtke_container_new(GTKE_ORIENTATION_HORIZONTAL, 0);
+    object->container.webview  = gtke_container_new(GTKE_ORIENTATION_VERTICAL, 0);
+    object->widget.title       = gtke_text_new(object->container.title);
+    object->widget.close       = gtke_button_new("x");
+
+    gtke_container_add(GTKE_CONTAINER_START, object->container.button,   object->widget.title,    false,  false,  0);
+    gtke_container_add(GTKE_CONTAINER_START, object->container.button,   object->widget.close,    false,  false,  3);
+    gtke_container_add(GTKE_CONTAINER_START, object->container.webview,  object->widget.webview,  true,   true,   0);
+  }
+
+  object->active = BROWSER_TAB_ACTIVE;
+
+  return object;
+}
+
+static BrowserTabSize
+browser_tab_alloc(void)
+{
+  if (tab != NULL)
+  {
+    BrowserTabSize i = 0;
+    BrowserTabSize size = 0;
+
+    for (; ((tab[i] != NULL) && (tab[i]->active != BROWSER_TAB_GARBAGE)); ++i)
+    {
+      switch (tab[i]->active)
+      {
+        case BROWSER_TAB_ACTIVE: break;
+        case BROWSER_TAB_GARBAGE: return i;
+        default: tab[i]->active = BROWSER_TAB_INACTIVE; break;
+      }
+    }
+
+    size = i + 2;
+
+    BrowserTab** tab_realloc = (BrowserTab**)realloc(tab, size*sizeof(*tab));
+    if (tab_realloc == NULL)
+    { return i-1; }
+    tab = tab_realloc;
+
+    for (; i < size - 1; ++i)
+    {
+      tab[i] = browser_tab_init(-1);
+    }
+    tab[i] = NULL;
+
+    return i-1;
+  }
+
+  tab = (BrowserTab**)malloc(2*sizeof(BrowserTab*));
+  tab[0] = browser_tab_init(-1);
+  tab[1] = NULL;
+
+  return 0;
+}
+
+static void
+browser_tab_free(BrowserTabSize index)
+{
+  if (index < 0)
+  {
+    BrowserTabSize i = 0;
+
+    for (; tab[i] != NULL; ++i)
+    {
+      free((void*)tab[i]);
+      tab[i] = NULL;
+    }
+    free((void*)tab);
+    tab = NULL;
+
+    return;
+  }
+
+  BrowserTabSize i = 0;
+  for (; tab[i] != NULL; ++i) {}
+  --i;
+
+  if (index > i)
+  {
+    index = i;
+  }
+
+  BrowserTab* ptr = tab[index];
+
+  ptr->active = BROWSER_TAB_GARBAGE;
+
+  if (index == 0)
+  {
+    if (tab_max == 1)
+    {
+      gtk_main_quit();
+      return;
+    }
+
+    gtke_page_move_forward(feather.widget.tab);
+    gtke_page_remove(feather.widget.tab, index);
+    return;
+  }
+
+  if (index == gtke_page_get_current_index(feather.widget.tab))
+  { gtke_page_move_backwards(feather.widget.tab); }
+
+  gtke_page_remove(feather.widget.tab, index);
+}
 
 /* =========================================================================== */
 
 static void
-update_tab_id(gpointer data)
+update_tab_url(GtkEWidget* entry, char* url)
 {
-  ID = GPOINTER_TO_INT(data);
-}
+  strcpy(url, gtke_entry_get_text(entry));
 
-static void
-update_tab_url(char* url, FBWidget* entry)
-{
-  if (WebView.Visible(SELF) == true)
-  { strcpy(url, Entry.GetLabel(entry)); }
+  gtke_widget_update(entry);
 }
 
 /* --------------------------------------------------------------------------- */
 
 static void
-on_url_change(FBWidget* widget, gpointer data)
+on_url_update(GtkEWebView* webview, GParamSpec* pspec, void* data)
 {
-  update_tab_id(data);
+  if (webview == NULL) { return; }
 
-  update_tab_url(tab[ID].url, widget);
+  BrowserTabSize index = GPOINTER_TO_INT(data);
+
+  if (gtke_webview_get_visible(GTK_WIDGET(webview)) == true)
+  { gtke_entry_set_text(feather.widget.url, gtke_webview_get_uri(GTK_WIDGET(webview))); }
+
+  update_tab_url(feather.widget.url, tab[index]->container.url);
 }
 
 static void
-on_url_update(FBWebView* web_view, GParamSpec* pspec, gpointer data)
+on_url_load(GtkEWebView* webview, WebKitLoadEvent event, void* data)
 {
-  update_tab_id(data);
+  if (webview == NULL) { return; }
 
-  if (WebView.Visible(web_view) == true)
-  { Entry.SetLabel(FB.widget.url, WebView.GetURI(web_view)); }
+  /* Temporary fix for new tab button */
+  if (gtke_page_get_current_index(feather.widget.tab) == gtke_page_index_count(feather.widget.tab)) { gtke_page_move_backwards(feather.widget.tab); }
 
-  update_tab_url(tab[ID].url, FB.widget.url);
-}
-
-static void
-on_url_search(FBWidget* widget, gpointer data)
-{
-  update_tab_id(data);
-
-  WebView.Search(SELF, tab[ID].url);
-}
-
-static void
-on_search_click(FBButton* button, gpointer data)
-{
-  update_tab_id(data);
-
-  if (WebView.Visible(SELF) == true)
-  { on_url_search(NULL, data); }
-}
-
-/* --------------------------------------------------------------------------- */
-
-static void
-on_url_history_back(FBButton* button, gpointer data)
-{
-  if (WebView.CanGoBack(SELF) == true)
-  { WebView.BackHistory(SELF); }
-}
-
-static void
-on_url_history_forward(FBButton* button, gpointer data)
-{
-  if (WebView.CanGoForward(SELF) == true)
-  { WebView.ForwardHistory(SELF); }
-}
-
-static void
-on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
-{
   char* button_label = NULL;
 
   switch (event)
@@ -95,219 +207,187 @@ on_url_load(FBWebView* web_view, WebKitLoadEvent event, gpointer data)
     default: break;
   }
 
-  Button.SetLabel(FB.widget.reload, button_label);
-}
-
-static void
-on_url_reload(FBButton* button, gpointer data)
-{
-  WebView.Reload(SELF, button);
+  gtke_button_set_label(feather.widget.reload, button_label);
 }
 
 /* --------------------------------------------------------------------------- */
 
 static void
-set_tab_url(const char* url)
+set_tab_url(BrowserTab* object, const char* url)
 {
-  if (url != NULL)
+  if (url == NULL)
   {
-    Entry.SetLabel(FB.widget.url, url);
+    gtke_entry_set_text(feather.widget.url, gtke_webview_get_uri(object->widget.webview));
     return;
   }
 
-  Entry.SetLabel(FB.widget.url, WebView.GetURI(SELF));
+  gtke_entry_set_text(feather.widget.url, url);
 }
 
 static void
-set_tab_title(const char* title)
+set_tab_title(BrowserTab* object, const char* title)
 {
   if (title == NULL) { return; }
-  int titlelen = strlen(title);
-  if (titlelen < 1) { return; }
 
-  strncpy(tab[ID].title, title, 23);
-  tab[ID].title[23] = '\0';
-  switch (titlelen)
+  uint8_t i = 0;
+
+  memset(object->container.title, ' ', 30);
+  object->container.title[31] = '\0';
+  strncpy(object->container.title, title, 30);
+
+  switch (strlen(title))
   {
-    case 0 ... 23: break;
+    case 0 ... 27: break;
     default:
     {
-      char c = 0;
-      if ((tab[ID].title[20] != '.') &&
-          (tab[ID].title[21] != '.') &&
-          (tab[ID].title[22] != '.'))
-      { c = '.'; }
-
-      tab[ID].title[20] = c;
-      tab[ID].title[21] = c;
-      tab[ID].title[22] = c;
+      if (object->container.title[27] == ' ') { break; }
+      for (i=0; i<=2; i++) { object->container.title[28+i] = '.'; }
     } break;
   }
 
-  Button.SetLabel(tab[ID].button.tab, tab[ID].title);
+  gtke_text_rename(object->widget.title, object->container.title);
 }
 
 static void
-on_tab_click(FBButton* button, gpointer data)
+on_tab_click(GtkEButton* button, void* data)
 {
-  update_tab_id(data);
+  BrowserTabSize index = GPOINTER_TO_INT(data);
 
-  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
-
-  WebView.SetMaster(tab[ID].web);
-  set_tab_url(NULL);
-
-  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
+  set_tab_url(tab[index], NULL);
 }
 
 static void
-on_tab_close(FBButton* button, gpointer data)
+on_tab_close(GtkEButton* button, void* data)
 {
-  update_tab_id(data);
+  if (button == NULL) { return; }
 
-  if (tab[ID].web == WebView.GetMaster())
-  {
-    WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
-    WebView.SetMaster(NULL);
-  }
-
-  tab[ID].ID = 0;
-  memset(tab[ID].title, '\0', sizeof(tab[ID].title));
-  memset(tab[ID].url, '\0', sizeof(tab[ID].url));
-
-  Widget.Destroy(GTK_WIDGET(tab[ID].web));
-  Widget.Destroy(tab[ID].button.close);
-  Widget.Destroy(tab[ID].button.tab);
-  Widget.Destroy(tab[ID].box.button);
-  TabPosition--;
-
-  tab[ID].garbage = true;
-
-  if (WebView.GetMaster() == NULL)
-  {
-    ID++;
-    if (tab[ID].ID == 0)
-    {
-      int i = tab_count; for (; i>=0; i--)
-      {
-        if (tab[i].garbage == false)
-        { ID = tab[i].ID; }
-      }
-    }
-
-    if (ID < tab_count)
-    {
-      set_tab_url(tab[ID].url);
-      WebView.SetMaster(tab[ID].web);
-
-      WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
-    }
-  }
+  browser_tab_free(GPOINTER_TO_INT(data));
 }
 
 static void
-update_tab_title(FBWebView* web_view, GParamSpec* pspec, gpointer data)
+update_tab_title(GtkEWebView* webview, GParamSpec* pspec, void* data)
 {
-  update_tab_id(data);
+  if (webview == NULL) { return; }
 
-  set_tab_title(WebView.GetTitle(web_view));
+  BrowserTabSize index = GPOINTER_TO_INT(data);
+
+  set_tab_title(tab[index], gtke_webview_get_title(GTK_WIDGET(webview)));
 }
 
 /* =========================================================================== */
 
-BrowserTabID
-fb_sdk_create_new_tab(FBWidget* container)
+void
+fb_sdk_on_url_change(GtkEWidget* widget, void* data)
 {
-  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_HIDE);
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
 
-  BrowserTabID ID = tab[tab_count].ID = tab_count;
-
-  bool countTabIncrease = true;
-  if (ID > 0)
-  {
-    BrowserTabID i = 0; for (; i<=tab_count; i++)
-    {
-      if (tab[i].garbage == true)
-      { ID = i; tab[i].ID = i; tab[i].garbage = false; countTabIncrease = false; break; }
-    }
-  }
-
-  sprintf(tab[ID].title, "New tab");
-
-  tab[ID].box.button = Box.Create((FBOrientation)BOX_ORIENTATION_HORIZONTAL, 0);
-  tab[ID].button.tab = Button.Create(tab[ID].title);
-  tab[ID].button.close = Button.Create("X");
-  tab[ID].web = WebView.Create();
-
-  Box.PositionStart(container, tab[ID].box.button, FALSE, FALSE, 3);
-  Box.PositionStart(tab[ID].box.button, tab[ID].button.tab, FALSE, FALSE, 0);
-  Box.PositionStart(tab[ID].box.button, tab[ID].button.close, FALSE, FALSE, 0);
-  Box.PositionStart(FB.box.web, GTK_WIDGET(tab[ID].web), TRUE, TRUE, 0);
-  Box.Move(container, tab[ID].box.button, TabPosition-1);
-  TabPosition++;
-
-  /* TODO: Fix `on_tab_click` bug where it is needed to double select a tab in order to switch. */
-  g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(tab[ID].button.tab,    "clicked",        G_CALLBACK(on_tab_click),           GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(tab[ID].button.close,  "clicked",        G_CALLBACK(on_tab_close),           GINT_TO_POINTER(tab[ID].ID));
-
-  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_url_load),            GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(tab[ID].web,           "load-changed",   G_CALLBACK(on_cookie_handle),       NULL);
-  g_signal_connect(tab[ID].web,           "notify::uri",    G_CALLBACK(on_url_update),          GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(tab[ID].web,           "notify::title",  G_CALLBACK(update_tab_title),       GINT_TO_POINTER(tab[ID].ID));
-
-  g_signal_connect(FB.widget.url,         "changed",        G_CALLBACK(on_url_change),          GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(FB.widget.url,         "activate",       G_CALLBACK(on_url_search),          GINT_TO_POINTER(tab[ID].ID));
-
-  g_signal_connect(FB.widget.back,        "clicked",        G_CALLBACK(on_url_history_back),    GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(FB.widget.forward,     "clicked",        G_CALLBACK(on_url_history_forward), GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(FB.widget.reload,      "clicked",        G_CALLBACK(on_url_reload),          GINT_TO_POINTER(tab[ID].ID));
-  g_signal_connect(FB.widget.search,      "clicked",        G_CALLBACK(on_search_click),        GINT_TO_POINTER(tab[ID].ID));
-
-  on_cookie_handle(tab[ID].web, (WebKitLoadEvent)WEBKIT_LOAD_FINISHED, NULL);
-  WebView.SetMaster(tab[ID].web);
-
-  char *html_file = load_html_file(ROOT.assets.launcher);
-  if (html_file == NULL)
-  {
-    strcpy(tab[ID].url, "https://html.duckduckgo.com/html/");
-    set_tab_url(tab[ID].url);
-    on_url_search(NULL, GINT_TO_POINTER(ID));
-  }
-  else
-  {
-    WebView.LoadHTML(tab[ID].web, html_file, NULL);
-    free(html_file);
-  }
-
-  if (countTabIncrease == true)
-  {
-    tab_count++;
-  }
-
-  WebView.Control(SELF, (FBWebViewMode)WEBVIEW_SHOW);
-
-  return ID;
+  update_tab_url(widget, tab[index]->container.url);
 }
-
-BrowserTab
-fb_sdk_get_tab(BrowserTabID ID)
-{
-  return tab[ID];
-}
-
-/*
-TODO: Dynamic tabs.
 
 void
-fb_sdk_free_tab(BrowserTab* tab)
+fb_sdk_on_url_search(GtkEWidget* widget, void* data)
 {
-  BrowserTabID i = 0;
-  for (i=0; i<tab_count; i++)
-  {
-    g_object_unref(tab[i].web);
-  }
-  free(tab);
+  if (data != NULL) { gtke_webview_search(widget, data); return; }
+
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
+
+  gtke_webview_search(tab[index]->widget.webview, tab[index]->container.url);
 }
-*/
+
+void
+fb_sdk_on_search_click(GtkEButton* button, void* data)
+{
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
+
+  fb_sdk_on_url_search(tab[index]->widget.webview, NULL);
+}
+
+void
+fb_sdk_on_url_history_back(GtkEButton* button, void* data)
+{
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
+
+  gtke_webview_go_back(tab[index]->widget.webview);
+}
+
+void
+fb_sdk_on_url_history_forward(GtkEButton* button, void* data)
+{
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
+
+  gtke_webview_go_forward(tab[index]->widget.webview);
+}
+
+void
+fb_sdk_on_url_reload(GtkEButton* button, void* data)
+{
+  BrowserTabSize index = gtke_page_get_current_index(feather.widget.tab);
+  if (index == tab_max) { --index; gtke_page_move_backwards(feather.widget.tab); }
+
+  gtke_webview_reload(tab[index]->widget.webview, button);
+}
+
+/* =========================================================================== */
+
+int32_t
+fb_sdk_create_new_tab(GtkEWidget* widget, void* data)
+{
+  tab_max = gtke_page_index_count(feather.widget.tab);
+  BrowserTabSize object_index = browser_tab_alloc();
+  BrowserTab* object = tab[object_index];
+
+  object = browser_tab_init(object_index);
+  object->index = tab_max - 1;
+
+  tab_ptr = object;
+
+  GtkEWebView* webview = WEBKIT_WEB_VIEW(object->widget.webview);
+  g_signal_connect(webview, "load-changed",   G_CALLBACK(on_url_load),      GINT_TO_POINTER(object->index));
+  g_signal_connect(webview, "notify::uri",    G_CALLBACK(on_url_update),    GINT_TO_POINTER(object->index));
+  g_signal_connect(webview, "notify::title",  G_CALLBACK(update_tab_title), GINT_TO_POINTER(object->index));
+  set_tab_url(object, object->container.url);
+  fb_sdk_on_url_search(object->widget.webview, object->container.url);
+
+  g_signal_connect(object->widget.close, "clicked", G_CALLBACK(on_tab_close), GINT_TO_POINTER(object->index));
+
+  gtke_page_append(feather.widget.tab, object->container.button, object->container.webview);
+  gtke_page_move_worker(feather.widget.tab, object->container.webview, object->index);
+  gtke_page_move_backwards(feather.widget.tab);
+
+  gtke_widget_update(feather.widget.tab);
+
+  return 0;
+}
+
+void
+fb_sdk_page_switch(GtkNotebook* page, GtkEWidget* worker, int32_t index, void* data)
+{
+  BrowserTabSize i = 0;
+  BrowserTab** ptr = tab;
+
+  for (; *ptr != NULL; ptr++)
+  {
+    if ((*ptr)->active == BROWSER_TAB_ACTIVE)
+    { (*ptr)->index = i++; }
+  }
+
+  if (index < gtke_page_index_count(feather.widget.tab) - 1)
+  {
+    set_tab_url(tab[index], NULL);
+    return;
+  }
+
+  fb_sdk_create_new_tab(worker, GINT_TO_POINTER(index));
+}
+
+void
+fb_sdk_free_tab(void)
+{
+  browser_tab_free(-1);
+}
 

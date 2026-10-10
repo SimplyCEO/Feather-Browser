@@ -1,110 +1,136 @@
-# CORE (needed to compile)
+TARGET         := feather-browser
 
-ifndef CC
-$(warning C compiler not detected. Setting default compiler to GCC...)
-	CC :=	gcc
+# GENERAL
+CC             := clang
+OSARCH         := amd64
+OSNAME         := unix64
+OSTYPE         := linux
+BUILD_TYPE     := Release
+BUILTIN_LIBC   := 0
+BUILD64        := 1
+PREFIX         := /usr/local
+PREFIX_BIN     := $(PREFIX)/bin
+
+ifeq ($(OSNAME),unix32)
+	OSARCH  = i386
+	OSTYPE  = linux
+	BUILD64 = 0
 endif
 
-# CORE OPTIONAL (compiler flags)
-
-ifndef BUILD_TYPE
-	BUILD_TYPE := Debug
+ifeq ($(OSNAME),unix64)
+	OSARCH  = amd64
+	OSTYPE  = linux
+	BUILD64 = 1
 endif
 
-ifndef CFLAGS
-	ifeq ($(CC), tcc)
-		CFLAGS := -std=c89
-	else
-		CFLAGS := --std=c89
+ifeq ($(OSNAME),mingw32)
+	CC             = gcc
+	OSARCH         = i386
+	OSTYPE         = mingw
+	BUILTIN_LIBC   = 0
+	BUILD64        = 0
+	PREFIX         = "\"\\Program Files (x86)\\$(TARGET)\""
+	PREFIX_BIN     = "\"\\Program Files (x86)\\$(TARGET)\""
+endif
+
+ifeq ($(OSNAME),mingw64)
+	CC             = gcc
+	OSARCH         = amd64
+	OSTYPE         = mingw
+	BUILTIN_LIBC   = 0
+	BUILD64        = 1
+	PREFIX         = "\"\\Program Files\\$(TARGET)\""
+	PREFIX_BIN     = "\"\\Program Files\\$(TARGET)\""
+endif
+
+# DIRECTORIES
+SRC_DIR         := src
+OBJ_DIR         := .obj
+BIN_DIR         := bin
+PREFIX          := /usr/local
+PWD             := $(shell pwd)
+
+# FILES
+SOURCES := $(shell find $(SRC_DIR) -name '*.c' | sort)
+OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
+DIRS    := $(shell echo $(OBJECTS) | tr ' ' '\n' | xargs -n1 dirname | sort -u) bin
+VENDOR  := gtk+-3.0 webkit2gtk-4.1 libsoup-3.0
+
+# COMPILER AND LINKER
+CFLAGS    := -DBUILD64=$(BUILD64) -Wall -Wextra
+HEADERS   := $(shell echo $(SOURCES) | tr ' ' '\n' | xargs -n1 dirname | sort -u | sed 's|^|-I./|') -I./vendor/GTKE
+LIBRARIES := -lm
+LDFLAGS   :=
+
+ifeq ($(CC),tcc)
+	CFLAGS += -std=c89
+else
+	CFLAGS += --std=c89
+endif
+
+ifeq ($(BUILD_TYPE),Release)
+	ifneq ($(CC),tcc)
+		CFLAGS += -O2
 	endif
-
-	ifeq ($(BUILD_TYPE), Release)
-		ifneq ($(CC), tcc)
-			CFLAGS += -O2
-		endif
-	else ifeq ($(BUILD_TYPE), Debug)
-		ifneq ($(CC), tcc)
-			CFLAGS += -O0
-		endif
-		CFLAGS += -g3 -ggdb -Wall
+else ifeq ($(BUILD_TYPE),Debug)
+	ifneq ($(CC),tcc)
+		CFLAGS += -O0
 	endif
+	CFLAGS += -g3 -ggdb -Wall
 endif
 
-CFLAGS += $(shell pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
+ifeq ($(BUILD64),0)
+	CFLAGS += -m32
+	LDFLAGS += -m32
+endif
+
+ifeq ($(BUILTIN_LIBC),1)
+	HEADERS += -I./vendor/musl/$(OSARCH)-musl-$(OSTYPE)/include
+	LDFLAGS += -static -L./vendor/musl/$(OSARCH)-musl-$(OSTYPE)/lib
+endif
+
+CFLAGS  += $(shell pkg-config --cflags $(VENDOR))
+LDFLAGS += $(shell pkg-config --libs $(VENDOR))
 
 # Avoid warnings from dependecy problem
-CFLAGS += -Wno-typedef-redefinition
+CFLAGS += -Wno-typedef-redefinition -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter
 
-ifndef INSTALL_PREFIX
-	INSTALL_PREFIX := /usr
-endif
-
-ESCAPE        := \033
-RED           := $(ESCAPE)[31m
-BOLD_RED      := $(ESCAPE)[1;31m
-GREEN         := $(ESCAPE)[32m
-BOLD_GREEN    := $(ESCAPE)[1;32m
-YELLOW        := $(ESCAPE)[33m
-BOLD_YELLOW   := $(ESCAPE)[1;33m
-BLUE          := $(ESCAPE)[34m
-BOLD_BLUE     := $(ESCAPE)[1;34m
-PURPLE        := $(ESCAPE)[35m
-BOLD_PURPLE   := $(ESCAPE)[1;35m
-CYAN          := $(ESCAPE)[36m
-BOLD_CYAN     := $(ESCAPE)[1;36m
-RESET_COLOUR  := $(ESCAPE)[0m
-
-PWD           := $(shell pwd | sed 's/ /\\ /g')
-OBJ_DIR       := $(PWD)/.obj
-SRC_DIR       := $(PWD)/src
-BIN_DIR       := $(PWD)/bin
-DIRS          := bin .obj .obj/widgets
-HEADERS       := -I./src -I./src/widgets
-LIBRARIES     := $(shell pkg-config --libs gtk+-3.0 webkit2gtk-4.0 libsoup-2.4)
-
-ifndef MINGW_CHOST
-	LIBRARIES   +=
-else
-	LIBRARIES   +=
-endif
-
-_TARGETS      := feather-browser
-_SOURCES      := $(shell find $(SRC_DIR) -name "*.c")
-_SOURCES      := $(patsubst $(SRC_DIR)/%,%,$(_SOURCES))
-_OBJECTS      := $(patsubst %.c,%.o,$(_SOURCES))
-
-TARGETS       := $(addprefix $(BIN_DIR)/, $(_TARGETS))
-SOURCES       := $(addprefix $(SRC_DIR)/, $(_SOURCES))
-OBJECTS       := $(addprefix $(OBJ_DIR)/, $(_OBJECTS))
+# COLOUR ESCAPE CODES
+GREEN        := \033[32m
+BOLD_GREEN   := \033[1;32m
+BLUE         := \033[34m
+BOLD_BLUE    := \033[1;34m
+RESET_COLOUR := \033[0m
 
 .PHONY: all
 
-all: directories $(TARGETS)
+all: directories $(TARGET)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@printf "[CC] ""$(GREEN)""Building object '$<'""$(RESET_COLOUR)""\n"
-	@$(CC) $(CFLAGS) $(HEADERS) -c $< -o $@
+	@printf "[CC] $(GREEN)Building object '%s'$(RESET_COLOUR)\n" "$<"
+	@$(CC) $(HEADERS) -c $< $(CFLAGS) -o $@
 
-$(TARGETS): $(OBJECTS)
-	@printf "[BIN] ""$(BOLD_GREEN)""Linking binary '$@'""$(RESET_COLOUR)""\n"
-	@$(CC) $(CFLAGS) $^ $(LIBRARIES) $(HEADERS) -o $@
+$(TARGET): $(OBJECTS)
+	@printf "[LD] $(BOLD_GREEN)Linking binary '%s'$(RESET_COLOUR)\n" "$@"
+	@$(CC) $(HEADERS) $^ $(LDFLAGS) $(LIBRARIES) -o $(BIN_DIR)/$@
 
 directories: $(DIRS)
 
 $(DIRS):
-	@printf "[DIR] ""$(BLUE)""Directory ""$(BOLD_BLUE)""'$@'""$(RESET_COLOUR)$(BLUE)"" created""$(RESET_COLOUR).""\n"
+	@printf "[DIR] $(BLUE) Directory $(BOLD_BLUE)'%s'$(RESET_COLOUR)$(BLUE) created$(RESET_COLOUR).\n" "$@"
 	@mkdir -p $(PWD)/$@
 
-install:
-	@mkdir -p $(HOME)/.local/share/feather-browser/assets/
-	@mkdir -p $(INSTALL_PREFIX)/share/feather-browser/assets/
-	@install -m 755 bin/feather-browser $(INSTALL_PREFIX)/bin/
-	@install -m 644 assets/icon.png $(INSTALL_PREFIX)/share/feather-browser/assets/
-	@install -m 644 feather-browser.desktop $(INSTALL_PREFIX)/share/applications/
-	@find assets/launcher -type f -exec install -Dm 755 "{}" "$(INSTALL_PREFIX)/share/feather-browser/{}" \;
+prefix:
+	@mkdir -p $(PREFIX)/bin 2>/dev/null || true
+	@mkdir -p $(HOME)/.local/share/$(TARGET)/assets/
+	@mkdir -p $(PREFIX)/share/$(TARGET)/assets/
+
+install: prefix
+	@install -vm 755 $(BIN_DIR)/$(TARGET) $(PREFIX_BIN)
+	@install -m 644 assets/icon.png $(PREFIX)/share/$(TARGET)/assets/
+	@install -m 644 $(TARGET).desktop $(PREFIX)/share/applications/
+	@find assets/launcher -type f -exec install -Dm 755 "{}" "$(PREFIX)/share/$(TARGET)/{}" \;
 
 clean:
-	@rm -rv $(BIN_DIR)/$(_TARGETS) 2>/dev/null || true
-	@rm -rv $(BIN_DIR) 2>/dev/null || true
-	@rm -rv $(OBJ_DIR) 2>/dev/null || true
+	@rm -rv $(BIN_DIR) $(OBJ_DIR) build 2>/dev/null || true
 
