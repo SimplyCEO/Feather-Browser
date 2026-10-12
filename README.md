@@ -7,10 +7,10 @@ Usage
 -----
 
 To install it is really simple. Clone, enter, make, run, rage.
-```shell
+```sh
 git clone https://gitlab.com/SimplyCEO/Feather-Browser.git
 cd Feather-Browser
-make BUILD_TYPE=Release
+make
 bin/feather-browser
 ```
 Or just open `feather-browser` located inside `bin` folder.
@@ -19,8 +19,8 @@ Installation
 ------------
 
 Run the following installation command as root:
-```shell
-make install
+```sh
+su -c "make PREFIX=/usr install"
 ```
 
 <details><summary>Local installation</summary>
@@ -29,19 +29,19 @@ To install only for the local user, the `PATH` environment variable need to be s
 which will be assumed it is under the `HOME` directory.
 
 Exporting the `PATH` environment variable is easy, just need a few steps:
-```shell
+```sh
 export PATH="${HOME}/.local/bin:${PATH}"
 cp bin/feather-browser "${HOME}/.local/bin"
 ```
 
 Copy the contents of the `assets` folder to the local browser folder:
-```shell
+```sh
 mkdir -p "${HOME}/.local/share/feather-browser"
 cp -r ./assets "${HOME}/.local/share/feather-browser"
 ```
 
 Additionaly, the desktop file for Linux devices can be accessed through the menu and/or desktop:
-```shell
+```sh
 cp assets/icon.png "${HOME}/.icons/feather-browser_icon.png"
 cp feather-browser.desktop "${HOME}/.local/share/applications"
 cp feather-browser.desktop "${HOME}/Desktop"

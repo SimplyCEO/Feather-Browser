@@ -1,8 +1,7 @@
 #ifndef TAB_HEADER
 #define TAB_HEADER
 
-#include <gtke/page.h>
-#include <gtke/webview.h>
+#include <gtke.h>
 
 typedef int BrowserTabSize;
 

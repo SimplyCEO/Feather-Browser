@@ -58,9 +58,9 @@ VENDOR  := gtk+-3.0 webkit2gtk-4.1 libsoup-3.0
 
 # COMPILER AND LINKER
 CFLAGS    := -DBUILD64=$(BUILD64) -Wall -Wextra
-HEADERS   := $(shell echo $(SOURCES) | tr ' ' '\n' | xargs -n1 dirname | sort -u | sed 's|^|-I./|') -I./vendor/GTKE
-LIBRARIES := -lm
-LDFLAGS   :=
+HEADERS   := $(shell echo $(SOURCES) | tr ' ' '\n' | xargs -n1 dirname | sort -u | sed 's|^|-I./|') -I./vendor/GTKE/include
+LIBRARIES := -lgtke -lm
+LDFLAGS   := -L./vendor/GTKE
 
 ifeq ($(CC),tcc)
 	CFLAGS += -std=c89

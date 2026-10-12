@@ -1,8 +1,9 @@
 #ifndef BROWSER_HEADER
 #define BROWSER_HEADER
 
-#include <gtke/webview.h>
 #include <libsoup/soup.h>
+
+#include "gtke.h"
 
 typedef struct BrowserAssetsDirectory
 {

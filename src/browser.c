@@ -1,16 +1,12 @@
 #define __GTKE_USE_CLASS__
 
-#include <gtke/container.h>
-#include <gtke/entry.h>
-#include <gtke/text.h>
-#include <gtke/window.h>
-
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include "browser.h"
+
 #include "tab.h"
 
 Browser feather = {0};

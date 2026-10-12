@@ -1,19 +1,14 @@
 #define __GTKE_WEBVIEW_USE_COOKIES__
 
-#include <gtke/container.h>
-#include <gtke/entry.h>
-#include <gtke/page.h>
-#include <gtke/text.h>
-#include <gtke/webview.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "tab.h"
+
 #include "tools.h"
 #include "browser.h"
-#include "tab.h"
 
 BrowserTab**   tab     = NULL;
 BrowserTab*    tab_ptr = NULL;
