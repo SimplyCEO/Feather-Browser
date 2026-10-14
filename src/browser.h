@@ -3,7 +3,7 @@
 
 #include <libsoup/soup.h>
 
-#include "gtke.h"
+#include <gtke.h>
 
 typedef struct BrowserAssetsDirectory
 {

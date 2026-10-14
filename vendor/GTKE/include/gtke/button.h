@@ -14,6 +14,7 @@ typedef GtkButton GtkEButton;
 
 const char* gtke_button_get_label(GtkEWidget* button);
 void        gtke_button_set_label(GtkEWidget* button, const char* label);
+void        gtke_button_set_flat_style(GtkEWidget* button);
 GtkEWidget* gtke_button_new(const char* label);
 GtkEWidget* gtke_check_button_new(const char* label);
 int32_t     gtke_toggle_button_get_active(GtkEWidget* checkmark);
@@ -24,6 +25,7 @@ typedef struct GtkEWidgetButtonClass
 {
   const char*   (*GetLabel)(GtkEWidget*);
   void          (*SetLabel)(GtkEWidget*, const char*);
+  void          (*SetFlat)(GtkEWidget*);
   GtkEWidget*   (*Create)(const char*);
   struct GtkEWidgetButtonCheckMarkClass
   {
@@ -37,6 +39,7 @@ static GtkEWidgetButtonClass Button =
 {
   gtke_button_get_label,
   gtke_button_set_label,
+  gtke_button_set_flat_style,
   gtke_button_new,
   {
     gtke_check_button_new,

@@ -59,6 +59,8 @@ browser_tab_init(BrowserTabSize index)
     object->widget.title       = gtke_text_new(object->container.title);
     object->widget.close       = gtke_button_new("x");
 
+    gtke_button_set_flat_style(object->widget.close);
+
     gtke_container_add(GTKE_CONTAINER_START, object->container.button,   object->widget.title,    false,  false,  0);
     gtke_container_add(GTKE_CONTAINER_START, object->container.button,   object->widget.close,    false,  false,  3);
     gtke_container_add(GTKE_CONTAINER_START, object->container.webview,  object->widget.webview,  true,   true,   0);
