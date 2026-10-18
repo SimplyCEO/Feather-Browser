@@ -27,12 +27,13 @@ setup_directory(void)
   strcpy(feather.path.root.icon, feather.path.root.assets);
   strcpy(feather.path.root.launcher, feather.path.root.assets);
   strcpy(feather.path.user.assets, feather.path.user.master);
-  strcpy(feather.path.user.cookies, feather.path.user.assets);
 
   strcat(feather.path.root.assets, "/assets");
   strcat(feather.path.user.assets, "/assets");
   strcat(feather.path.root.icon, "/icon.png");
   strcat(feather.path.root.launcher, "/launcher/index.html");
+
+  strcpy(feather.path.user.cookies, feather.path.user.assets);
   strcat(feather.path.user.cookies, "/cookies.dat");
 
   if (stat(feather.path.user.master, &s) == -1) { mkdir(feather.path.user.master, 0700); }
